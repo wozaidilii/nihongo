@@ -1,75 +1,79 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Skill, SpeechStyleId } from "~/types";
+import type { HeroClassId, Skill } from "~/types";
 import { incantationFor, readingFor } from "~/lib/speech";
 import { playVoiceOrTts, skillVoiceSrc } from "~/lib/voice";
-import { useSpeechCast, type CastResult } from "~/hooks/useSpeechCast";
+import { useSpeechCast, type CastPhase, type CastResult } from "~/hooks/useSpeechCast";
 import {
   CAST_CRIT_THRESHOLD,
-  CAST_SUCCESS_THRESHOLD,
+  CAST_GOOD_THRESHOLD,
+  powerScaleFromAccuracy,
 } from "~/lib/match";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { PixelButton } from "~/components/pixel/PixelButton";
 
 interface CastPanelProps {
   skill: Skill;
-  styleId: SpeechStyleId;
-  /** 每次新的施法尝试递增，用于重置面板内部状态 */
+  classId: HeroClassId;
   attemptKey: number;
-  /** 玩家确认结果后回调，父级据此结算 */
   onResolved: (result: CastResult) => void;
-  /** 父级动画播放中时禁用操作 */
   busy?: boolean;
+  onCastPhaseChange?: (phase: CastPhase) => void;
 }
 
 /** 准确度对应的评价文字 */
 function gradeText(acc: number): string {
+  if (acc >= 100) return "完美咏唱！";
   if (acc >= CAST_CRIT_THRESHOLD) return "完美咏唱！暴击！";
-  if (acc >= CAST_SUCCESS_THRESHOLD) return "咏唱成功！";
+  if (acc >= CAST_GOOD_THRESHOLD) return "咏唱成功！";
+  if (acc > 0) {
+    const pct = Math.round(powerScaleFromAccuracy(acc) * 100);
+    return `勉强咏唱…威力 ${pct}%`;
+  }
   return "咏唱失败……";
 }
 
 /** 语音施法面板：念出咒文释放技能，含降级输入 */
 export function CastPanel({
   skill,
-  styleId,
+  classId,
   attemptKey,
   onResolved,
   busy = false,
+  onCastPhaseChange,
 }: CastPanelProps) {
   const cast = useSpeechCast();
-  const incantation = incantationFor(skill, styleId);
-  const reading = readingFor(skill, styleId);
+  const incantation = incantationFor(skill);
+  const reading = readingFor(skill);
+  const castTarget = { incantation, reading };
   const [fallbackInput, setFallbackInput] = useState("");
 
-  // 每次新尝试时重置面板
   useEffect(() => {
     cast.reset();
     setFallbackInput("");
-    // 仅依赖 attemptKey：开启新一轮
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attemptKey]);
+
+  useEffect(() => {
+    onCastPhaseChange?.(cast.phase);
+  }, [cast.phase, onCastPhaseChange]);
 
   const listening = cast.phase === "listening";
   const scored = cast.phase === "scored" && cast.result;
 
   const handleMic = () => {
-    if (listening) {
-      cast.stop();
-    } else {
-      cast.start(reading);
-    }
+    if (listening) cast.stop();
+    else cast.start(castTarget);
   };
 
   const handleFallbackSubmit = () => {
-    const res = cast.submitText(fallbackInput, reading);
+    const res = cast.submitText(fallbackInput, castTarget);
     onResolved(res);
   };
 
   return (
     <PixelPanel className="w-full">
-      {/* 咒文展示 */}
       <div className="text-center">
         <p className="font-pixel text-[11px] text-rpg-12">
           技能 · {skill.nameJa}（{skill.nameZh}）
@@ -77,11 +81,15 @@ export function CastPanel({
         <p className="mt-2 font-jp text-lg leading-relaxed text-rpg-5">
           「{incantation}」
         </p>
-        <p className="mt-1 font-jp text-xs text-rpg-14">读音：{reading}</p>
+        <p className="mt-1 font-jp text-xs text-rpg-14">
+          读音参考：{reading}（念上方咒文即可）
+        </p>
         <p className="font-jp text-[11px] text-rpg-14">含义：{skill.zh}</p>
         <button
           type="button"
-          onClick={() => playVoiceOrTts(skillVoiceSrc(skill.id, styleId), reading)}
+          onClick={() =>
+            playVoiceOrTts(skillVoiceSrc(classId, skill.id), reading)
+          }
           className="mt-2 font-jp text-xs text-rpg-11 underline"
         >
           🔊 听示范
@@ -90,7 +98,6 @@ export function CastPanel({
 
       <div className="mt-4 border-t-2 border-rpg-15 pt-4">
         {cast.fallback ? (
-          /* ---------- 降级：手动输入假名 ---------- */
           <div className="flex flex-col gap-2">
             <p className="font-jp text-xs text-rpg-4">
               {cast.errorMessage ?? "语音不可用，请输入咒文读音(假名)："}
@@ -111,7 +118,6 @@ export function CastPanel({
             </PixelButton>
           </div>
         ) : (
-          /* ---------- 语音施法 ---------- */
           <div className="flex flex-col items-center gap-3">
             {!scored && (
               <PixelButton
@@ -164,7 +170,7 @@ export function CastPanel({
                     disabled={busy}
                     onClick={() => onResolved(cast.result as CastResult)}
                   >
-                    {cast.result.success ? "释放！" : "硬着头皮上"}
+                    {cast.result.success ? "释放！" : "放弃咏唱"}
                   </PixelButton>
                 </div>
               </div>

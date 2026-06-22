@@ -48,6 +48,7 @@ export const HERO_CLASSES: HeroClass[] = [
     styleId: "keigo",
     description: "以礼为剑的圣骑士。用最优雅的敬语，斩断一切邪恶。",
     sprite: "🛡️",
+    spriteKey: "knight",
     stats: { power: 1.0, maxHp: 120 },
   },
   {
@@ -57,6 +58,7 @@ export const HERO_CLASSES: HeroClass[] = [
     styleId: "chuuni",
     description: "封印着禁忌之力的咏唱者。中二咒文越长，魔力越强。",
     sprite: "🔮",
+    spriteKey: "mage",
     stats: { power: 1.3, maxHp: 80 },
   },
   {
@@ -66,6 +68,7 @@ export const HERO_CLASSES: HeroClass[] = [
     styleId: "tameguchi",
     description: "潇洒不羁的影之刺客。用最随性的口语，给敌人致命一击。",
     sprite: "🗡️",
+    spriteKey: "rogue",
     stats: { power: 1.15, maxHp: 95 },
   },
   {
@@ -75,6 +78,7 @@ export const HERO_CLASSES: HeroClass[] = [
     styleId: "bushi",
     description: "恪守武士之道的剑豪。一言一行皆古风，一刀一式皆必杀。",
     sprite: "⚔️",
+    spriteKey: "samurai",
     stats: { power: 1.1, maxHp: 110 },
   },
 ];

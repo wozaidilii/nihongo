@@ -1,4 +1,4 @@
-import type { SpeechStyleId } from "~/types";
+import type { HeroClassId, SpeechStyleId } from "~/types";
 import { speak } from "~/lib/tts";
 
 /**
@@ -6,7 +6,6 @@ import { speak } from "~/lib/tts";
  * 优先播放 public/voices 下的中二动漫配音；文件缺失/出错时回退到浏览器 TTS。
  */
 
-// 同一时刻只允许一个配音在播放
 let current: HTMLAudioElement | null = null;
 
 /** 语体示例台词的音频路径(选职业试听) */
@@ -14,9 +13,9 @@ export function styleSampleSrc(styleId: SpeechStyleId): string {
   return `/voices/sample_${styleId}.wav`;
 }
 
-/** 技能咒文的音频路径(战斗听示范) */
-export function skillVoiceSrc(skillId: string, styleId: SpeechStyleId): string {
-  return `/voices/skill_${skillId}_${styleId}.wav`;
+/** 职业专属技能咒文音频(战斗听示范) */
+export function skillVoiceSrc(classId: HeroClassId, skillId: string): string {
+  return `/voices/skill_${classId}_${skillId}.wav`;
 }
 
 /** 停止当前配音 */
@@ -32,10 +31,7 @@ export function stopVoice(): void {
   }
 }
 
-/**
- * 播放指定音频；失败(不支持/404/解码错误)时执行 fallback。
- * fallback 只会被调用一次，避免重复发声。
- */
+/** 播放指定音频；失败时执行 fallback(仅一次) */
 export function playVoice(src: string, fallback?: () => void): void {
   if (typeof window === "undefined" || !src) {
     fallback?.();
@@ -61,9 +57,7 @@ export function playVoice(src: string, fallback?: () => void): void {
   }
 }
 
-/**
- * 便捷方法：播放配音文件，失败则用 TTS 朗读 text。
- */
+/** 播放配音文件，失败则用 TTS 朗读 text */
 export function playVoiceOrTts(src: string, text: string): void {
   playVoice(src, () => speak(text));
 }

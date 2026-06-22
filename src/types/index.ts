@@ -34,8 +34,10 @@ export interface HeroClass {
   styleId: SpeechStyleId;
   /** 职业简介(中文，中二风) */
   description: string;
-  /** 像素精灵(emoji 占位，可替换为 PNG) */
+  /** 像素精灵 emoji 回退 */
   sprite: string;
+  /** LPC 精灵 id(与 manifest heroes 键一致) */
+  spriteKey: HeroClassId;
   /** 属性加成：攻击力倍率与生命上限 */
   stats: {
     /** 技能伤害倍率，1 为基准 */
@@ -60,22 +62,33 @@ export interface Vocab {
   ttsText?: string;
 }
 
+/** 技能特效素材键(与 public/sprites/fx 一致) */
+export type SkillFxKey =
+  | "fire"
+  | "holy"
+  | "lightning"
+  | "shadow"
+  | "slash"
+  | "thrust"
+  | "dagger";
+
 /**
- * 技能：每个技能是一句中二咒文。
- * incantationByStyle 提供各语体的咒文文本；readingKana 是用于语音识别比对的目标读音。
+ * 技能：每个职业拥有独立咒文与特效。
+ * incantation / reading 为该职业专属，不再按语体分叉。
  */
 export interface Skill {
   id: string;
+  classId: HeroClassId;
+  stageId: string;
   nameJa: string;
   nameZh: string;
-  /** 各语体下的咒文写法(展示用) */
-  incantationByStyle: Record<SpeechStyleId, string>;
-  /** 各语体下的目标读音(假名，语音识别比对用) */
-  readingByStyle: Record<SpeechStyleId, string>;
-  /** 基础伤害 */
+  /** 咒文写法(展示用) */
+  incantation: string;
+  /** 目标读音(假名，语音识别比对用) */
+  reading: string;
   baseDamage: number;
-  /** 咒文中文含义 */
   zh: string;
+  fxKey: SkillFxKey;
 }
 
 /** 降级答题(不支持语音/拒权时使用) */
@@ -93,8 +106,10 @@ export interface Question {
 /** 敌人(怪兽) */
 export interface Enemy {
   name: string;
-  /** 像素精灵(emoji 占位) */
+  /** 像素精灵 emoji 回退 */
   sprite: string;
+  /** LPC 敌人精灵 id(与 manifest enemies 键一致) */
+  spriteKey: string;
   hp: number;
   /** 怪兽攻击力(玩家施法失败时受到的伤害) */
   attack: number;
@@ -111,8 +126,6 @@ export interface Stage {
   enemy: Enemy;
   /** 本关学习的词汇 */
   vocab: Vocab[];
-  /** 战斗中要释放的技能(按顺序) */
-  skills: Skill[];
 }
 
 /** 玩家存档状态 */

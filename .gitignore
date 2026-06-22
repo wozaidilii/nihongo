@@ -47,3 +47,6 @@ yarn-error.log*
 
 # VoxCPM 本地克隆与虚拟环境(请单独 git clone OpenBMB/VoxCPM)
 VoxCPM/
+
+# LPC 原始素材缓存(运行 scripts/build_lpc_sprites.py 时下载)
+public/sprites/_tmp/

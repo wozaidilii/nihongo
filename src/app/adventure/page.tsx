@@ -7,7 +7,7 @@ import { getHeroClass, getStyleForClass } from "~/data/classes";
 import { MapNode } from "~/components/game/MapNode";
 import { PixelButton } from "~/components/pixel/PixelButton";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
-import { PixelSprite } from "~/components/pixel/PixelSprite";
+import { CharacterSprite } from "~/components/pixel/CharacterSprite";
 import { useGameReady } from "~/hooks/useGameReady";
 import { useGameStore } from "~/store/game";
 
@@ -38,7 +38,14 @@ export default function AdventurePage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 p-6">
       <PixelPanel tone="dialog" className="flex items-center gap-4">
-        <PixelSprite glyph={hero.sprite} size={48} bob />
+        <CharacterSprite
+          kind="hero"
+          id={hero.spriteKey}
+          fallbackGlyph={hero.sprite}
+          state="idle"
+          bob
+          label={hero.nameZh}
+        />
         <div className="flex-1">
           <p className="font-pixel text-sm text-rpg-5">
             {hero.nameZh} · Lv.{level}

@@ -2,6 +2,7 @@
 
 import type { Stage } from "~/types";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
+import { CharacterSprite } from "~/components/pixel/CharacterSprite";
 import { PixelSprite } from "~/components/pixel/PixelSprite";
 
 interface MapNodeProps {
@@ -27,11 +28,18 @@ export function MapNode({ stage, unlocked, cleared, onEnter }: MapNodeProps) {
         className={disabled ? "opacity-60" : "transition-transform hover:-translate-y-1"}
       >
         <div className="flex items-center gap-4">
-          <PixelSprite
-            glyph={unlocked ? stage.enemy.sprite : "🔒"}
-            size={44}
-            bob={unlocked && !cleared}
-          />
+          {unlocked ? (
+            <CharacterSprite
+              kind="enemy"
+              id={stage.enemy.spriteKey}
+              fallbackGlyph={stage.enemy.sprite}
+              state="idle"
+              bob={!cleared}
+              label={stage.enemy.name}
+            />
+          ) : (
+            <PixelSprite glyph="🔒" size={44} />
+          )}
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <p className="font-pixel text-sm text-rpg-5">

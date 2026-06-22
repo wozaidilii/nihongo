@@ -1,0 +1,465 @@
+{
+  "heroes": {
+    "knight": {
+      "sheet": "/sprites/heroes/knight.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 448,
+      "sheetHeight": 256,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "cast": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "fps": 8
+        },
+        "attack": {
+          "row": 2,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "fps": 10
+        },
+        "hurt": {
+          "row": 3,
+          "frames": [
+            0,
+            1
+          ],
+          "fps": 6
+        }
+      }
+    },
+    "mage": {
+      "sheet": "/sprites/heroes/mage.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 448,
+      "sheetHeight": 256,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "cast": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "fps": 8
+        },
+        "attack": {
+          "row": 2,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "fps": 10
+        },
+        "hurt": {
+          "row": 3,
+          "frames": [
+            0,
+            1
+          ],
+          "fps": 6
+        }
+      }
+    },
+    "rogue": {
+      "sheet": "/sprites/heroes/rogue.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 448,
+      "sheetHeight": 256,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "cast": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "fps": 8
+        },
+        "attack": {
+          "row": 2,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "fps": 10
+        },
+        "hurt": {
+          "row": 3,
+          "frames": [
+            0,
+            1
+          ],
+          "fps": 6
+        }
+      }
+    },
+    "samurai": {
+      "sheet": "/sprites/heroes/samurai.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 512,
+      "sheetHeight": 256,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "cast": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "fps": 8
+        },
+        "attack": {
+          "row": 2,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 10
+        },
+        "hurt": {
+          "row": 3,
+          "frames": [
+            0,
+            1
+          ],
+          "fps": 6
+        }
+      }
+    }
+  },
+  "enemies": {
+    "slime": {
+      "sheet": "/sprites/enemies/slime.png",
+      "frameWidth": 32,
+      "frameHeight": 32,
+      "sheetWidth": 64,
+      "sheetHeight": 128,
+      "scale": 2,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1
+          ],
+          "fps": 3
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1
+          ],
+          "fps": 8
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        }
+      }
+    },
+    "dragon": {
+      "sheet": "/sprites/enemies/dragon.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 256,
+      "sheetHeight": 256,
+      "scale": 1.75,
+      "flipX": false,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2
+          ],
+          "fps": 5
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 10
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        }
+      }
+    }
+  },
+  "fx": {
+    "fire": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/fire.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "holy": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/holy.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "lightning": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/lightning.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "shadow": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/shadow.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 512,
+      "sheetHeight": 64,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "slash": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/slash.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 384,
+      "sheetHeight": 64,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "thrust": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/thrust.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 384,
+      "sheetHeight": 64,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "dagger": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/dagger.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 384,
+      "sheetHeight": 64,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "fps": 12
+        }
+      }
+    }
+  }
+}

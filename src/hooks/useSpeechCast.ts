@@ -7,7 +7,13 @@ import {
   type CastErrorKind,
   type Recognizer,
 } from "~/lib/speechRecognition";
-import { CAST_SUCCESS_THRESHOLD, scoreReading } from "~/lib/match";
+import { scoreSkillCast } from "~/lib/match";
+
+/** 咏唱比对目标：咒文原文 + 假名读音 */
+export interface CastTarget {
+  incantation: string;
+  reading: string;
+}
 
 /** 施法阶段状态机 */
 export type CastPhase = "idle" | "listening" | "scored";
@@ -17,7 +23,7 @@ export interface CastResult {
   heard: string;
   /** 0~100 准确度 */
   accuracy: number;
-  /** 是否达到成功阈值 */
+  /** 是否念出有效咒文(准确度 > 0) */
   success: boolean;
 }
 
@@ -33,12 +39,12 @@ export interface UseSpeechCastReturn {
   result: CastResult | null;
   /** 错误提示(人类可读) */
   errorMessage: string | null;
-  /** 开始监听目标读音 */
-  start: (targetReading: string) => void;
+  /** 开始监听咒文 */
+  start: (target: CastTarget) => void;
   /** 主动停止监听 */
   stop: () => void;
   /** 用文本(降级输入)直接评分 */
-  submitText: (text: string, targetReading: string) => CastResult;
+  submitText: (text: string, target: CastTarget) => CastResult;
   /** 重置回 idle */
   reset: () => void;
 }
@@ -76,7 +82,7 @@ export function useSpeechCast(): UseSpeechCastReturn {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const recognizerRef = useRef<Recognizer | null>(null);
-  const targetRef = useRef<string>("");
+  const targetRef = useRef<CastTarget>({ incantation: "", reading: "" });
   const scoredRef = useRef<boolean>(false);
 
   // 仅在客户端检测支持性，避免 SSR 不一致
@@ -95,11 +101,12 @@ export function useSpeechCast(): UseSpeechCastReturn {
   }, []);
 
   const finalizeScore = useCallback((heard: string): CastResult => {
-    const accuracy = scoreReading(heard, targetRef.current);
+    const { incantation, reading } = targetRef.current;
+    const accuracy = scoreSkillCast(heard, incantation, reading);
     const res: CastResult = {
       heard,
       accuracy,
-      success: accuracy >= CAST_SUCCESS_THRESHOLD,
+      success: accuracy > 0,
     };
     setResult(res);
     setPhase("scored");
@@ -111,8 +118,11 @@ export function useSpeechCast(): UseSpeechCastReturn {
   }, []);
 
   const start = useCallback(
-    (targetReading: string) => {
-      targetRef.current = targetReading ?? "";
+    (target: CastTarget) => {
+      targetRef.current = {
+        incantation: target?.incantation ?? "",
+        reading: target?.reading ?? "",
+      };
       scoredRef.current = false;
       setInterim("");
       setResult(null);
@@ -164,13 +174,20 @@ export function useSpeechCast(): UseSpeechCastReturn {
   );
 
   const submitText = useCallback(
-    (text: string, targetReading: string): CastResult => {
-      targetRef.current = targetReading ?? "";
-      const accuracy = scoreReading(text, targetReading);
+    (text: string, target: CastTarget): CastResult => {
+      targetRef.current = {
+        incantation: target?.incantation ?? "",
+        reading: target?.reading ?? "",
+      };
+      const accuracy = scoreSkillCast(
+        text,
+        targetRef.current.incantation,
+        targetRef.current.reading,
+      );
       const res: CastResult = {
         heard: text,
         accuracy,
-        success: accuracy >= CAST_SUCCESS_THRESHOLD,
+        success: accuracy > 0,
       };
       setResult(res);
       setPhase("scored");

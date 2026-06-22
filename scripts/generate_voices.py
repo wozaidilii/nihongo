@@ -1,27 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-用 VoxCPM2 的 Voice Design 能力为「勇者日语探险」生成中二动漫感台词配音。
+用 VoxCPM2 Voice Design 为各职业专属技能生成中二动漫配音。
 
-运行方式(需先 clone VoxCPM 并安装依赖):
-  git clone https://github.com/OpenBMB/VoxCPM
-  cd VoxCPM && uv venv --python 3.11 .venv && uv pip install -p .venv -e .
-  cd .. && VoxCPM/.venv/bin/python scripts/generate_voices.py
+运行:
+  VoxCPM/.venv/bin/python scripts/generate_voices.py
 """
 
-import os
+from __future__ import annotations
+
 import json
+import os
 import sys
 
 import soundfile as sf
 from voxcpm import VoxCPM
 
-# ---------- 路径 ----------
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.normpath(os.path.join(HERE, "..", "public", "voices"))
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# ---------- 各语体的动漫/中二音色描述(Voice Design) ----------
+# 语体示例(选职业试听)
 PERSONA = {
     "keigo": "(A noble young knight, gallant and dignified male voice, elegant, heroic and passionate, dramatic Japanese anime style)",
     "chuuni": "(A theatrical dark sorcerer, intense over-the-top chuunibyou young male voice, brooding, grandiose and powerful, highly dramatic Japanese anime style)",
@@ -36,51 +35,61 @@ SAMPLES = {
     "bushi": "拙者の刃、いざ唸るでござる！",
 }
 
-SKILLS = {
-    "s-flame": {
-        "keigo": "炎よ、燃えてください",
-        "chuuni": "燃えよ、我が炎",
-        "tameguchi": "燃えろ、炎",
-        "bushi": "炎よ、いざ参る",
-    },
-    "s-light": {
-        "keigo": "光よ、導いてください",
-        "chuuni": "光よ、闇を貫け",
-        "tameguchi": "光、頼むぜ",
-        "bushi": "光明よ、いざ",
-    },
-    "s-thunder": {
-        "keigo": "雷よ、落ちてください",
-        "chuuni": "雷よ、我に宿れ",
-        "tameguchi": "雷、落ちろ",
-        "bushi": "雷よ、いざ落ちよ",
-    },
-    "s-final": {
-        "keigo": "我が剣で、終わらせます",
-        "chuuni": "我が剣よ、運命を断て",
-        "tameguchi": "俺の剣で、終わりだぜ",
-        "bushi": "拙者の剣で、討ち取るでござる",
-    },
+# 职业 → 语体 persona
+CLASS_PERSONA = {
+    "knight": "keigo",
+    "mage": "chuuni",
+    "rogue": "tameguchi",
+    "samurai": "bushi",
+}
+
+# 职业专属技能咒文(与 src/data/skills.ts 对齐)
+CLASS_SKILLS: dict[str, list[tuple[str, str]]] = {
+    "knight": [
+        ("k-shield", "盾よ、我を護れ"),
+        ("k-smite", "正道の光よ、裁け"),
+        ("k-oath", "我が誓い、悪を断つ"),
+        ("k-judgment", "神よ、裁きをください"),
+    ],
+    "mage": [
+        ("m-orb", "我が左手に、闇黒の球"),
+        ("m-whisper", "禁じられた言霊よ、起きよ"),
+        ("m-storm", "終焉の嵐、我に従え"),
+        ("m-void", "虚無よ、全てを呑め"),
+    ],
+    "rogue": [
+        ("r-shadow", "影に乗って、いくぜ"),
+        ("r-stab", "背中から、一刺しだ"),
+        ("r-volt", "サッと決める、雷だぜ"),
+        ("r-finisher", "これで終わりだぜ"),
+    ],
+    "samurai": [
+        ("s-iai", "拙者、居合にて斬るでござる"),
+        ("s-wind", "風よ、刃となれでござる"),
+        ("s-thunder", "雷鳴と共に、斬るでござる"),
+        ("s-mushin", "無心の剣、いざ放つでござる"),
+    ],
 }
 
 
-def build_jobs():
-    """汇总所有要合成的任务：(key, filename, styleId, 文本)。"""
-    jobs = []
+def build_jobs() -> list[tuple[str, str, str, str]]:
+    """(key, filename, styleId, text)"""
+    jobs: list[tuple[str, str, str, str]] = []
     for style, text in SAMPLES.items():
         jobs.append((f"sample_{style}", f"sample_{style}.wav", style, text))
-    for skill_id, by_style in SKILLS.items():
-        for style, text in by_style.items():
-            key = f"skill_{skill_id}_{style}"
+    for class_id, skills in CLASS_SKILLS.items():
+        style = CLASS_PERSONA[class_id]
+        for skill_id, text in skills:
+            key = f"skill_{class_id}_{skill_id}"
             jobs.append((key, f"{key}.wav", style, text))
     return jobs
 
 
-def main():
+def main() -> None:
     jobs = build_jobs()
     print(f"[VoxCPM] 准备合成 {len(jobs)} 条台词 -> {OUT_DIR}", flush=True)
 
-    print("[VoxCPM] 加载模型 openbmb/VoxCPM2 (首次会自动下载，请耐心等待)…", flush=True)
+    print("[VoxCPM] 加载模型 openbmb/VoxCPM2 …", flush=True)
     model = VoxCPM.from_pretrained(
         "openbmb/VoxCPM2",
         load_denoiser=False,
@@ -90,7 +99,7 @@ def main():
     sample_rate = model.tts_model.sample_rate
     print(f"[VoxCPM] 模型就绪，采样率 {sample_rate}Hz", flush=True)
 
-    manifest = {}
+    manifest: dict[str, str] = {}
     for i, (key, filename, style, text) in enumerate(jobs, 1):
         prompt = f"{PERSONA[style]}{text}"
         print(f"[{i}/{len(jobs)}] {key}: {text}", flush=True)
@@ -109,7 +118,7 @@ def main():
     manifest_path = os.path.join(OUT_DIR, "manifest.json")
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
-    print(f"[VoxCPM] 完成，成功 {len(manifest)}/{len(jobs)} 条；manifest -> {manifest_path}", flush=True)
+    print(f"[VoxCPM] 完成 {len(manifest)}/{len(jobs)} 条 -> {manifest_path}", flush=True)
 
 
 if __name__ == "__main__":

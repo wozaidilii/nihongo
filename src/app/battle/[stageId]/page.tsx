@@ -3,18 +3,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getStage, getNextStage, isStageUnlocked } from "~/data/stages";
+import { getSkillsForStage } from "~/data/skills";
 import { getHeroClass, getStyleForClass } from "~/data/classes";
-import { damageFromAccuracy } from "~/lib/match";
+import { damageFromAccuracy, powerScaleFromAccuracy } from "~/lib/match";
 import { speak } from "~/lib/tts";
 import { useGameReady } from "~/hooks/useGameReady";
 import { useGameStore } from "~/store/game";
 import { DialogueBox } from "~/components/battle/DialogueBox";
 import { CastPanel } from "~/components/battle/CastPanel";
+import { SkillFxOverlay } from "~/components/battle/SkillFxOverlay";
 import { HpBar } from "~/components/pixel/HpBar";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { PixelButton } from "~/components/pixel/PixelButton";
-import { PixelSprite } from "~/components/pixel/PixelSprite";
-import type { CastResult } from "~/hooks/useSpeechCast";
+import { CharacterSprite } from "~/components/pixel/CharacterSprite";
+import type { CastPhase, CastResult } from "~/hooks/useSpeechCast";
+import type { SpriteAnimState } from "~/types/sprites";
 
 type Phase = "intro" | "learn" | "battle" | "win" | "lose";
 
@@ -49,7 +52,10 @@ export default function BattlePage() {
   const [busy, setBusy] = useState(false);
   const [enemyAnim, setEnemyAnim] = useState("");
   const [heroAnim, setHeroAnim] = useState("");
+  const [heroSprite, setHeroSprite] = useState<SpriteAnimState>("idle");
+  const [enemySprite, setEnemySprite] = useState<SpriteAnimState>("idle");
   const [floats, setFloats] = useState<FloatDmg[]>([]);
+  const [fxTrigger, setFxTrigger] = useState(0);
   const floatId = useRef(0);
 
   // 路由/前置条件校验：无效关卡或未解锁则回地图；未选职业回选择页
@@ -76,7 +82,7 @@ export default function BattlePage() {
     }
   }, [stage, hero]);
 
-  const skills = stage?.skills ?? [];
+  const skills = getSkillsForStage(stageId, classId);
   const currentSkill = skills.length > 0 ? skills[skillIndex % skills.length] : undefined;
   const vocabIds = useMemo(() => stage?.vocab.map((v) => v.id) ?? [], [stage]);
 
@@ -101,25 +107,34 @@ export default function BattlePage() {
     if (busy || !currentSkill) return;
     setBusy(true);
 
-    const { damage, crit } = damageFromAccuracy(
+    const { damage, crit, cast } = damageFromAccuracy(
       result.accuracy,
       currentSkill.baseDamage,
       hero.stats.power,
     );
 
-    if (result.success && damage > 0) {
-      // 命中敌人
+    if (cast && damage > 0) {
+      setHeroSprite("attack");
+      setEnemySprite("hurt");
+      setFxTrigger((k) => k + 1);
       const next = Math.max(0, enemyHp - damage);
       setEnemyAnim("anim-shake anim-flash");
       pushFloat(damage, crit);
+      const powerPct = Math.round(powerScaleFromAccuracy(result.accuracy) * 100);
+      const powerNote =
+        result.accuracy < 92 && result.accuracy > 0 ? `（威力 ${powerPct}%）` : "";
       setFeedback(
-        crit ? `暴击！「${currentSkill.nameZh}」造成 ${damage} 点伤害！` : `「${currentSkill.nameZh}」造成 ${damage} 点伤害！`,
+        crit
+          ? `暴击！「${currentSkill.nameZh}」造成 ${damage} 点伤害！${powerNote}`
+          : `「${currentSkill.nameZh}」造成 ${damage} 点伤害！${powerNote}`,
       );
       setEnemyHp(next);
 
       setTimeout(() => {
         setEnemyAnim("");
+        setHeroSprite("idle");
         if (next <= 0) {
+          setEnemySprite("death");
           completeStage(stage.id, vocabIds);
           setPhase("win");
         } else {
@@ -129,7 +144,8 @@ export default function BattlePage() {
         setBusy(false);
       }, 650);
     } else {
-      // 施法失败：敌人反击
+      setEnemySprite("attack");
+      setHeroSprite("hurt");
       const dmg = stage.enemy.attack;
       const next = Math.max(0, heroHp - dmg);
       setHeroAnim("anim-shake");
@@ -138,6 +154,8 @@ export default function BattlePage() {
 
       setTimeout(() => {
         setHeroAnim("");
+        setHeroSprite("idle");
+        setEnemySprite("idle");
         if (next <= 0) {
           setPhase("lose");
         } else {
@@ -154,7 +172,17 @@ export default function BattlePage() {
     setSkillIndex(0);
     setAttemptKey((k) => k + 1);
     setFeedback("");
+    setHeroSprite("idle");
+    setEnemySprite("idle");
     setPhase("battle");
+  };
+
+  const handleCastPhase = (castPhase: CastPhase) => {
+    if (busy) return;
+    if (castPhase === "listening") setHeroSprite("cast");
+    else if (castPhase === "idle" || castPhase === "scored") {
+      setHeroSprite((s) => (s === "cast" ? "idle" : s));
+    }
   };
 
   // ===== 渲染各阶段 =====
@@ -219,7 +247,15 @@ export default function BattlePage() {
           >
             <div className="flex flex-col items-center gap-2">
               <div className={heroAnim}>
-                <PixelSprite glyph={hero.sprite} size={52} bob={!busy} />
+                <CharacterSprite
+                  kind="hero"
+                  id={hero.spriteKey}
+                  fallbackGlyph={hero.sprite}
+                  state={heroSprite}
+                  playing={!busy || heroSprite === "cast"}
+                  bob={heroSprite === "idle" && !busy}
+                  label={hero.nameZh}
+                />
               </div>
               <div className="w-28">
                 <HpBar current={heroHp} max={hero.stats.maxHp} tone="hero" />
@@ -229,8 +265,22 @@ export default function BattlePage() {
             <span className="font-pixel text-xs text-rpg-4">VS</span>
 
             <div className="relative flex flex-col items-center gap-2">
-              <div className={enemyAnim}>
-                <PixelSprite glyph={stage.enemy.sprite} size={56} bob={!busy} />
+              <div className={`relative ${enemyAnim}`}>
+                <CharacterSprite
+                  kind="enemy"
+                  id={stage.enemy.spriteKey}
+                  fallbackGlyph={stage.enemy.sprite}
+                  state={enemySprite}
+                  playing
+                  bob={enemySprite === "idle" && !busy}
+                  label={stage.enemy.name}
+                />
+                {currentSkill && (
+                  <SkillFxOverlay
+                    fxKey={currentSkill.fxKey}
+                    triggerKey={fxTrigger}
+                  />
+                )}
               </div>
               <div className="w-28">
                 <HpBar current={enemyHp} max={stage.enemy.hp} tone="enemy" label={stage.enemy.name} />
@@ -258,10 +308,11 @@ export default function BattlePage() {
 
           <CastPanel
             skill={currentSkill}
-            styleId={style.id}
+            classId={hero.id}
             attemptKey={attemptKey}
             onResolved={handleResolved}
             busy={busy}
+            onCastPhaseChange={handleCastPhase}
           />
         </div>
       )}

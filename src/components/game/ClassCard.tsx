@@ -3,7 +3,7 @@
 import type { HeroClass } from "~/types";
 import { SPEECH_STYLES } from "~/data/classes";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
-import { PixelSprite } from "~/components/pixel/PixelSprite";
+import { CharacterSprite } from "~/components/pixel/CharacterSprite";
 
 interface ClassCardProps {
   hero: HeroClass;
@@ -33,7 +33,14 @@ export function ClassCard({ hero, selected, onSelect }: ClassCardProps) {
         }
       >
         <div className="flex items-center gap-4">
-          <PixelSprite glyph={hero.sprite} size={48} bob={selected} />
+          <CharacterSprite
+            kind="hero"
+            id={hero.spriteKey}
+            fallbackGlyph={hero.sprite}
+            state="idle"
+            bob={selected}
+            label={hero.nameZh}
+          />
           <div>
             <p className="font-pixel text-sm text-rpg-5">{hero.nameZh}</p>
             <p className="font-jp text-xs text-rpg-12">{hero.nameJa}</p>

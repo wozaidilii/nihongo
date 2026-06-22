@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/*
+ * 像素风设计令牌(Tailwind v4 @theme)。
+ * 调色板采用经典 16 色 "Sweetie 16"，保证整体复古统一。
+ * 字体变量来自 next/font(在 layout 注入)。
+ */
+@theme {
+  --font-pixel: var(--font-press-start), ui-monospace, monospace;
+  --font-jp: var(--font-dot-gothic), var(--font-press-start), sans-serif;
+
+  /* Sweetie 16 调色板 */
+  --color-rpg-1: #1a1c2c;
+  --color-rpg-2: #5d275d;
+  --color-rpg-3: #b13e53;
+  --color-rpg-4: #ef7d57;
+  --color-rpg-5: #ffcd75;
+  --color-rpg-6: #a7f070;
+  --color-rpg-7: #38b764;
+  --color-rpg-8: #257179;
+  --color-rpg-9: #29366f;
+  --color-rpg-10: #3b5dc9;
+  --color-rpg-11: #41a6f6;
+  --color-rpg-12: #73eff7;
+  --color-rpg-13: #f4f4f4;
+  --color-rpg-14: #94b0c2;
+  --color-rpg-15: #566c86;
+  --color-rpg-16: #333c57;
+}
+
+html,
+body {
+  background-color: var(--color-rpg-1);
+  color: var(--color-rpg-13);
+  /* 默认日文体，英文/数字在组件内单独指定像素体 */
+  font-family: var(--font-jp);
+}
+
+/* 像素图标/精灵禁用平滑，保持硬边 */
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}

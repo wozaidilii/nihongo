@@ -1,0 +1,130 @@
+/**
+ * 全局领域类型定义。
+ * 这里集中描述「勇者探险」日语学习游戏的核心数据结构，
+ * 供数据层(src/data)、状态层(src/store)与 UI 复用，避免重复定义。
+ */
+
+/** 日语语体(说话方式)标识：不同职业对应不同语体 */
+export type SpeechStyleId = "keigo" | "chuuni" | "tameguchi" | "bushi";
+
+/** 勇者职业标识 */
+export type HeroClassId = "knight" | "mage" | "rogue" | "samurai";
+
+/** 一种日语语体的描述：用于渲染台词风格与说明 */
+export interface SpeechStyle {
+  id: SpeechStyleId;
+  /** 语体名(日文) */
+  nameJa: string;
+  /** 语体名(中文) */
+  nameZh: string;
+  /** 语体特点说明(中文) */
+  description: string;
+  /** 典型句末/口癖，用于 UI 展示，例如「〜でござる」 */
+  signature: string;
+  /** 一句示例台词 */
+  sample: string;
+}
+
+/** 勇者职业 */
+export interface HeroClass {
+  id: HeroClassId;
+  nameJa: string;
+  nameZh: string;
+  /** 对应的语体 */
+  styleId: SpeechStyleId;
+  /** 职业简介(中文，中二风) */
+  description: string;
+  /** 像素精灵(emoji 占位，可替换为 PNG) */
+  sprite: string;
+  /** 属性加成：攻击力倍率与生命上限 */
+  stats: {
+    /** 技能伤害倍率，1 为基准 */
+    power: number;
+    /** 生命上限 */
+    maxHp: number;
+  };
+}
+
+/** 词汇(N5 起步) */
+export interface Vocab {
+  id: string;
+  /** 假名读音 */
+  kana: string;
+  /** 汉字写法(可能没有) */
+  kanji?: string;
+  /** 罗马音 */
+  romaji: string;
+  /** 中文释义 */
+  zh: string;
+  /** 用于 TTS 朗读的文本，默认取假名 */
+  ttsText?: string;
+}
+
+/**
+ * 技能：每个技能是一句中二咒文。
+ * incantationByStyle 提供各语体的咒文文本；readingKana 是用于语音识别比对的目标读音。
+ */
+export interface Skill {
+  id: string;
+  nameJa: string;
+  nameZh: string;
+  /** 各语体下的咒文写法(展示用) */
+  incantationByStyle: Record<SpeechStyleId, string>;
+  /** 各语体下的目标读音(假名，语音识别比对用) */
+  readingByStyle: Record<SpeechStyleId, string>;
+  /** 基础伤害 */
+  baseDamage: number;
+  /** 咒文中文含义 */
+  zh: string;
+}
+
+/** 降级答题(不支持语音/拒权时使用) */
+export interface Question {
+  id: string;
+  type: "kana" | "choice";
+  /** 题干(中文/日文) */
+  prompt: string;
+  /** 选择题选项 */
+  options?: string[];
+  /** 正确答案 */
+  answer: string;
+}
+
+/** 敌人(怪兽) */
+export interface Enemy {
+  name: string;
+  /** 像素精灵(emoji 占位) */
+  sprite: string;
+  hp: number;
+  /** 怪兽攻击力(玩家施法失败时受到的伤害) */
+  attack: number;
+}
+
+/** 关卡 */
+export interface Stage {
+  id: string;
+  title: string;
+  /** 章节序号，决定地图顺序与解锁关系 */
+  order: number;
+  /** 场景描述(中二风) */
+  intro: string;
+  enemy: Enemy;
+  /** 本关学习的词汇 */
+  vocab: Vocab[];
+  /** 战斗中要释放的技能(按顺序) */
+  skills: Skill[];
+}
+
+/** 玩家存档状态 */
+export interface PlayerState {
+  /** 存档版本，便于迁移 */
+  version: number;
+  /** 已选职业，未选为 null */
+  classId: HeroClassId | null;
+  level: number;
+  exp: number;
+  /** 已通关的关卡 id */
+  clearedStageIds: string[];
+  /** 已学会的词汇 id */
+  learnedVocabIds: string[];
+}

@@ -1,7 +1,7 @@
 /**
  * 咒文匹配评分工具。
- * 把「语音识别结果」与「目标读音」都归一化后计算相似度，
- * 得到 0~100 的咏唱准确度，供战斗判定与暴击使用。
+ * 语音识别常输出汉字（如 行く），而读音目标是假名（いく），
+ * 需在对齐咒文与假名后再比对，避免「念对了却扣分」。
  */
 
 /** 片假名 → 平假名(按码位平移 0x60) */
@@ -18,10 +18,15 @@ function toHalfWidth(input: string): string {
     .replace(/\u3000/g, " ");
 }
 
+/** 是否为平假名 */
+function isHiragana(ch: string): boolean {
+  const c = ch.codePointAt(0);
+  return c !== undefined && c >= 0x3041 && c <= 0x3096;
+}
+
 /**
  * 归一化日语文本：
- * 转半角 → 片假名转平假名 → 去除空白与标点 → 统一长音/拗音等易混差异。
- * 对任意非法输入(null/undefined)都安全返回空串。
+ * 转半角 → 片假名转平假名 → 去除空白与标点。
  */
 export function normalizeJa(input: string | null | undefined): string {
   if (!input) return "";
@@ -29,6 +34,39 @@ export function normalizeJa(input: string | null | undefined): string {
   s = katakanaToHiragana(s);
   s = s.toLowerCase();
   s = s.replace(/[\s、。，．,.!！?？・「」『』…ー―\-~〜]/g, "");
+  return s;
+}
+
+/** 语音识别里常见的「汉字写法 ↔ 假名写法」等价（仅用于评分） */
+const ASR_KANA_ALIASES: Record<string, string> = {
+  行く: "いく",
+  行って: "いって",
+  行け: "いけ",
+  来る: "くる",
+  来て: "きて",
+  見る: "みる",
+  見て: "みて",
+  言う: "いう",
+  言って: "いって",
+  思う: "おもう",
+  思って: "おもって",
+  有る: "ある",
+  在る: "ある",
+  成る: "なる",
+  成って: "なって",
+  為る: "する",
+  為て: "して",
+  御: "ご",
+  御座: "ござ",
+};
+
+/** 将识别结果里的常见汉字写法替换成假名 */
+function applyAsrAliases(text: string): string {
+  let s = text;
+  const keys = Object.keys(ASR_KANA_ALIASES).sort((a, b) => b.length - a.length);
+  for (const kanji of keys) {
+    s = s.split(kanji).join(ASR_KANA_ALIASES[kanji] ?? kanji);
+  }
   return s;
 }
 
@@ -56,10 +94,111 @@ function levenshtein(a: string, b: string): number {
   return prev[b.length] ?? 0;
 }
 
+/** Levenshtein 回溯，得到 inc(咒文) 与 read(假名) 的分段对齐 */
+function alignIncantationReading(
+  inc: string,
+  read: string,
+): Array<{ inc: string; read: string }> {
+  const a = [...inc];
+  const b = [...read];
+  const n = a.length;
+  const m = b.length;
+  const dp: number[][] = Array.from({ length: n + 1 }, () =>
+    Array(m + 1).fill(0),
+  );
+
+  for (let i = 0; i <= n; i++) dp[i]![0] = i;
+  for (let j = 0; j <= m; j++) dp[0]![j] = j;
+
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i]![j] = Math.min(
+        dp[i - 1]![j]! + 1,
+        dp[i]![j - 1]! + 1,
+        dp[i - 1]![j - 1]! + cost,
+      );
+    }
+  }
+
+  const segments: Array<{ inc: string; read: string }> = [];
+  let i = n;
+  let j = m;
+  let incBuf = "";
+  let readBuf = "";
+
+  const flush = () => {
+    if (incBuf || readBuf) {
+      segments.unshift({ inc: incBuf, read: readBuf });
+      incBuf = "";
+      readBuf = "";
+    }
+  };
+
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && dp[i]![j] === dp[i - 1]![j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1)) {
+      if (a[i - 1] === b[j - 1]) {
+        flush();
+        segments.unshift({ inc: a[i - 1]!, read: b[j - 1]! });
+      } else {
+        incBuf = a[i - 1]! + incBuf;
+        readBuf = b[j - 1]! + readBuf;
+      }
+      i--;
+      j--;
+    } else if (j > 0 && dp[i]![j] === dp[i]![j - 1]! + 1) {
+      readBuf = b[j - 1]! + readBuf;
+      j--;
+    } else if (i > 0 && dp[i]![j] === dp[i - 1]![j]! + 1) {
+      incBuf = a[i - 1]! + incBuf;
+      i--;
+    } else {
+      break;
+    }
+  }
+  flush();
+  return segments;
+}
+
+/** 从咒文 + 假名读音推导「汉字/混合写法 → 假名」替换表 */
+function buildReadingMap(incantation: string, reading: string): Map<string, string> {
+  const inc = normalizeJa(incantation);
+  const read = normalizeJa(reading);
+  const map = new Map<string, string>();
+
+  if (!inc || !read) return map;
+
+  const segments = alignIncantationReading(inc, read);
+  for (const { inc: incSeg, read: readSeg } of segments) {
+    if (!incSeg || !readSeg || incSeg === readSeg) continue;
+    // 咒文段含汉字或非假名，且假名段为纯假名 → 建立替换
+    const incHasNonHira = [...incSeg].some((ch) => !isHiragana(ch));
+    const readAllHira = [...readSeg].every((ch) => isHiragana(ch));
+    if (incHasNonHira && readAllHira) {
+      map.set(incSeg, readSeg);
+    }
+  }
+  return map;
+}
+
+/** 按咒文/读音对齐表 + 常见别名，把识别文本尽量转成假名读音 */
+function heardToReadingForm(
+  heard: string,
+  incantation: string,
+  reading: string,
+): string {
+  let s = applyAsrAliases(normalizeJa(heard));
+  const map = buildReadingMap(incantation, reading);
+
+  const replacements = [...map.entries()].sort((a, b) => b[0].length - a[0].length);
+  for (const [surface, kana] of replacements) {
+    if (surface && kana) s = s.split(surface).join(kana);
+  }
+  return applyAsrAliases(s);
+}
+
 /**
  * 计算咏唱准确度(0~100)。
- * heard：识别到的文本；target：目标文本。
- * 二者归一化后基于编辑距离换算相似度；空输入返回 0。
  */
 export function scoreReading(
   heard: string | null | undefined,
@@ -76,24 +215,23 @@ export function scoreReading(
   return Math.round(Math.max(0, Math.min(1, ratio)) * 100);
 }
 
-/** 仅保留平假名，用于混有汉字时的读音兜底比对 */
-function hiraganaOnly(input: string | null | undefined): string {
-  return normalizeJa(input).replace(/[^\u3041-\u3096]/g, "");
-}
-
 /**
- * 技能咏唱评分：同时对照咒文原文与假名读音，取最高分。
- * 语音识别常输出汉字(与画面咒文一致)，仅比假名会导致误伤。
+ * 技能咏唱评分：对照咒文、假名读音，以及对齐后的假名形式，取最高分。
  */
 export function scoreSkillCast(
   heard: string | null | undefined,
   incantation: string | null | undefined,
   reading: string | null | undefined,
 ): number {
+  const inc = incantation ?? "";
+  const read = reading ?? "";
+  const aligned = heardToReadingForm(heard ?? "", inc, read);
+
   const scores = [
-    scoreReading(heard, incantation),
-    scoreReading(heard, reading),
-    scoreReading(hiraganaOnly(heard), reading),
+    scoreReading(heard, inc),
+    scoreReading(applyAsrAliases(normalizeJa(heard)), inc),
+    scoreReading(aligned, read),
+    scoreReading(heard, read),
   ];
   return Math.max(0, ...scores);
 }
@@ -101,26 +239,18 @@ export function scoreSkillCast(
 /** UI 用：准确度达到此值显示「咏唱成功」 */
 export const CAST_GOOD_THRESHOLD = 70;
 
-/** 暴击阈值：准确度达到此值额外加伤 */
+/** 暴击阈值 */
 export const CAST_CRIT_THRESHOLD = 92;
 
 /** 最低威力倍率(1% 准确度时) */
 export const CAST_MIN_SCALE = 0.15;
 
-/**
- * 由准确度换算威力倍率(0~1)。
- * 准确度为 0 时返回 0，表示完全未命中咒文。
- */
 export function powerScaleFromAccuracy(accuracy: number): number {
   const acc = Math.max(0, Math.min(100, Number.isFinite(accuracy) ? accuracy : 0));
   if (acc <= 0) return 0;
   return CAST_MIN_SCALE + (acc / 100) * (1 - CAST_MIN_SCALE);
 }
 
-/**
- * 由准确度计算伤害。
- * 任意 >0 的准确度均可施法，威力随准确度连续缩放；仅 0% 视为完全失败。
- */
 export function damageFromAccuracy(
   accuracy: number,
   base: number,

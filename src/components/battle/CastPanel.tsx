@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { HeroClassId, Skill } from "~/types";
-import { incantationFor, readingFor } from "~/lib/speech";
+import { incantationFor, readingFor, romajiFor } from "~/lib/speech";
 import { playVoiceOrTts, skillVoiceSrc } from "~/lib/voice";
 import { useSpeechCast, type CastPhase, type CastResult } from "~/hooks/useSpeechCast";
 import {
@@ -22,19 +22,17 @@ interface CastPanelProps {
   onCastPhaseChange?: (phase: CastPhase) => void;
 }
 
-/** 准确度对应的评价文字 */
+/** 准确度 → 评价（含威力说明） */
 function gradeText(acc: number): string {
-  if (acc >= 100) return "完美咏唱！";
-  if (acc >= CAST_CRIT_THRESHOLD) return "完美咏唱！暴击！";
-  if (acc >= CAST_GOOD_THRESHOLD) return "咏唱成功！";
-  if (acc > 0) {
-    const pct = Math.round(powerScaleFromAccuracy(acc) * 100);
-    return `勉强咏唱…威力 ${pct}%`;
-  }
-  return "咏唱失败……";
+  const powerPct = Math.round(powerScaleFromAccuracy(acc) * 100);
+  if (acc >= 100) return `咒文完美匹配 → 威力 ${powerPct}%`;
+  if (acc >= CAST_CRIT_THRESHOLD) return `咒文完美匹配 · 暴击！→ 威力 ${powerPct}%`;
+  if (acc >= CAST_GOOD_THRESHOLD) return `咒文匹配良好 → 威力 ${powerPct}%`;
+  if (acc > 0) return `咒文部分匹配 → 威力 ${powerPct}%`;
+  return "未听清咒文，无法施法";
 }
 
-/** 语音施法面板：念出咒文释放技能，含降级输入 */
+/** 语音施法面板 */
 export function CastPanel({
   skill,
   classId,
@@ -46,6 +44,7 @@ export function CastPanel({
   const cast = useSpeechCast();
   const incantation = incantationFor(skill);
   const reading = readingFor(skill);
+  const romaji = romajiFor(skill);
   const castTarget = { incantation, reading };
   const [fallbackInput, setFallbackInput] = useState("");
 
@@ -75,37 +74,61 @@ export function CastPanel({
   return (
     <PixelPanel className="w-full">
       <div className="text-center">
-        <p className="font-pixel text-[11px] text-rpg-12">
-          技能 · {skill.nameJa}（{skill.nameZh}）
+        {/* 技能名：仅展示，不参与判定 */}
+        <p className="font-pixel text-[10px] text-rpg-14">技能名（不用念）</p>
+        <p className="font-jp text-sm text-rpg-12">
+          {skill.nameJa}（{skill.nameZh}）
         </p>
-        <p className="mt-2 font-jp text-lg leading-relaxed text-rpg-5">
-          「{incantation}」
-        </p>
-        <p className="mt-1 font-jp text-xs text-rpg-14">
-          读音参考：{reading}（念上方咒文即可）
-        </p>
-        <p className="font-jp text-[11px] text-rpg-14">含义：{skill.zh}</p>
-        <button
-          type="button"
-          onClick={() =>
-            playVoiceOrTts(skillVoiceSrc(classId, skill.id), incantation)
-          }
-          className="mt-2 font-jp text-xs text-rpg-11 underline"
-        >
-          🔊 听示范
-        </button>
+
+        {/* 咏唱咒文：玩家实际要念的内容 */}
+        <div className="mt-3 border-t-2 border-dashed border-rpg-15 pt-3">
+          <p className="font-pixel text-[11px] text-rpg-5">咏唱咒文 · 请念这个</p>
+          <p className="mt-2 font-jp text-lg leading-relaxed text-rpg-5">
+            「{incantation}」
+          </p>
+          <button
+            type="button"
+            onClick={() =>
+              playVoiceOrTts(skillVoiceSrc(classId, skill.id), incantation)
+            }
+            className="mt-2 font-jp text-xs text-rpg-11 underline"
+          >
+            🔊 听示范
+          </button>
+        </div>
+
+        {/* 判定对照：语音识别比对此假名，决定威力 */}
+        <div className="mt-3 rounded border-2 border-rpg-4/40 bg-rpg-13/50 px-3 py-2 text-left">
+          <p className="font-pixel text-[10px] text-rpg-4">
+            判定对照 · 威力看匹配度
+          </p>
+          <p className="mt-1 font-jp text-sm text-rpg-5">
+            <span className="text-rpg-14">假名：</span>
+            {reading}
+          </p>
+          <p className="mt-0.5 font-jp text-sm text-rpg-5">
+            <span className="text-rpg-14">罗马音：</span>
+            {romaji || "—"}
+          </p>
+          <p className="mt-2 font-jp text-[10px] leading-relaxed text-rpg-14">
+            可念汉字咒文或假名；系统把你念的内容与上方假名比对，相似度越高威力越大（与技能名无关）。
+          </p>
+        </div>
+
+        <p className="mt-2 font-jp text-[11px] text-rpg-14">含义：{skill.zh}</p>
       </div>
 
       <div className="mt-4 border-t-2 border-rpg-15 pt-4">
         {cast.fallback ? (
           <div className="flex flex-col gap-2">
             <p className="font-jp text-xs text-rpg-4">
-              {cast.errorMessage ?? "语音不可用，请输入咒文读音(假名)："}
+              {cast.errorMessage ??
+                "语音不可用，请输入咒文假名（与「判定对照」一致）："}
             </p>
             <input
               value={fallbackInput}
               onChange={(e) => setFallbackInput(e.target.value)}
-              placeholder="ここに よみがなを にゅうりょく"
+              placeholder={reading || "よみがなを にゅうりょく"}
               disabled={busy}
               className="font-jp w-full border-4 border-rpg-1 bg-rpg-13 px-3 py-2 text-sm text-rpg-1 outline-none"
             />
@@ -132,7 +155,7 @@ export function CastPanel({
 
             {listening && (
               <p className="font-jp text-sm text-rpg-12">
-                {cast.interim || "……请大声念出咒文……"}
+                {cast.interim || `……请念「${incantation}」……`}
               </p>
             )}
 
@@ -145,7 +168,10 @@ export function CastPanel({
                 <p className="font-jp text-xs text-rpg-14">
                   识别到：{cast.result.heard || "(没听清)"}
                 </p>
-                <p className="mt-1 font-pixel text-2xl text-rpg-5">
+                <p className="mt-1 font-jp text-xs text-rpg-14">
+                  与假名「{reading}」相似度
+                </p>
+                <p className="font-pixel text-2xl text-rpg-5">
                   {cast.result.accuracy}%
                 </p>
                 <p

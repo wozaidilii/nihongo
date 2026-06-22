@@ -84,8 +84,10 @@ export interface Skill {
   nameZh: string;
   /** 咒文写法(展示用) */
   incantation: string;
-  /** 目标读音(假名，语音识别比对用) */
+  /** 目标读音(平假名，语音识别比对用) */
   reading: string;
+  /** 罗马音读音参考 */
+  romaji: string;
   baseDamage: number;
   zh: string;
   fxKey: SkillFxKey;

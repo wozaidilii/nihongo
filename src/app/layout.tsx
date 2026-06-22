@@ -3,6 +3,7 @@ import "~/styles/pixel.css";
 
 import { type Metadata } from "next";
 import { Press_Start_2P, DotGothic16 } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 
 import { TRPCReactProvider } from "~/trpc/react";
 
@@ -35,6 +36,7 @@ export default function RootLayout({
     <html lang="ja" className={`${pressStart.variable} ${dotGothic.variable}`}>
       <body className="min-h-screen">
         <TRPCReactProvider>{children}</TRPCReactProvider>
+        <Analytics />
       </body>
     </html>
   );

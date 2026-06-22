@@ -7,7 +7,7 @@ import { Press_Start_2P, DotGothic16 } from "next/font/google";
 import { TRPCReactProvider } from "~/trpc/react";
 
 export const metadata: Metadata = {
-  title: "勇者日语探险 | 中二咒文学日语",
+  title: "吟唱勇者 | 中二咒文学日语",
   description: "通过勇者探险与中二咒文学习日语：选择职业，念出咒文释放技能！",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };

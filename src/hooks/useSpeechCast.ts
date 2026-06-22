@@ -84,20 +84,17 @@ export function useSpeechCast(): UseSpeechCastReturn {
   const recognizerRef = useRef<Recognizer | null>(null);
   const targetRef = useRef<CastTarget>({ incantation: "", reading: "" });
   const scoredRef = useRef<boolean>(false);
+  const phaseRef = useRef<CastPhase>("idle");
+
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
   // 仅在客户端检测支持性，避免 SSR 不一致
   useEffect(() => {
     const ok = isSpeechRecognitionSupported();
     setSupported(ok);
     if (!ok) setFallback(true);
-  }, []);
-
-  // 卸载时释放识别器
-  useEffect(() => {
-    return () => {
-      recognizerRef.current?.dispose();
-      recognizerRef.current = null;
-    };
   }, []);
 
   const finalizeScore = useCallback((heard: string): CastResult => {
@@ -113,8 +110,62 @@ export function useSpeechCast(): UseSpeechCastReturn {
     return res;
   }, []);
 
+  /** 懒创建并复用识别器，避免移动端反复 new/abort */
+  const ensureRecognizer = useCallback((): Recognizer | null => {
+    if (recognizerRef.current) return recognizerRef.current;
+
+    const recognizer = createRecognizer({
+      onInterim: (text) => setInterim(text),
+      onFinal: (text) => {
+        scoredRef.current = true;
+        finalizeScore(text);
+      },
+      onError: (kind, message) => {
+        if (
+          kind === "unsupported" ||
+          kind === "not-allowed" ||
+          kind === "audio-capture" ||
+          kind === "network"
+        ) {
+          setFallback(true);
+        }
+        // aborted 已在底层过滤主动 stop；其余才提示用户
+        if (kind !== "aborted") {
+          setErrorMessage(errorText(kind) || message);
+        }
+        if (phaseRef.current === "listening") {
+          setPhase("idle");
+        }
+      },
+      onEnd: () => {
+        setPhase((prev) => {
+          if (scoredRef.current) return prev;
+          setInterim((cur) => {
+            if (cur) finalizeScore(cur);
+            return cur;
+          });
+          return scoredRef.current ? "scored" : "idle";
+        });
+      },
+    });
+
+    recognizerRef.current = recognizer;
+    return recognizer;
+  }, [finalizeScore]);
+
+  // 卸载时释放识别器
+  useEffect(() => {
+    return () => {
+      recognizerRef.current?.dispose();
+      recognizerRef.current = null;
+    };
+  }, []);
+
   const stop = useCallback(() => {
     recognizerRef.current?.stop();
+    if (phaseRef.current === "listening") {
+      setPhase("idle");
+    }
   }, []);
 
   const start = useCallback(
@@ -128,49 +179,17 @@ export function useSpeechCast(): UseSpeechCastReturn {
       setResult(null);
       setErrorMessage(null);
 
-      const recognizer = createRecognizer({
-        onInterim: (text) => setInterim(text),
-        onFinal: (text) => {
-          scoredRef.current = true;
-          finalizeScore(text);
-        },
-        onError: (kind, message) => {
-          // 不支持/拒权/无设备 → 进入降级；其余仅提示
-          if (
-            kind === "unsupported" ||
-            kind === "not-allowed" ||
-            kind === "audio-capture" ||
-            kind === "network"
-          ) {
-            setFallback(true);
-          }
-          setErrorMessage(errorText(kind) || message);
-        },
-        onEnd: () => {
-          // 结束时若没有任何最终结果，用中间结果兜底评分
-          setPhase((prev) => {
-            if (scoredRef.current) return prev;
-            setInterim((cur) => {
-              if (cur) finalizeScore(cur);
-              return cur;
-            });
-            return scoredRef.current ? "scored" : "idle";
-          });
-        },
-      });
-
+      const recognizer = ensureRecognizer();
       if (!recognizer) {
         setFallback(true);
         setPhase("idle");
         return;
       }
 
-      recognizerRef.current?.dispose();
-      recognizerRef.current = recognizer;
       setPhase("listening");
       recognizer.start();
     },
-    [finalizeScore],
+    [ensureRecognizer],
   );
 
   const submitText = useCallback(
@@ -197,6 +216,7 @@ export function useSpeechCast(): UseSpeechCastReturn {
   );
 
   const reset = useCallback(() => {
+    recognizerRef.current?.stop();
     setPhase("idle");
     setInterim("");
     setResult(null);

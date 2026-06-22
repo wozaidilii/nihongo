@@ -1,7 +1,6 @@
 /**
  * 语音识别(SpeechRecognition)封装。
- * 提供支持性检测，以及一个带回调的轻量包装器；
- * 统一处理权限/错误/超时，组件卸载时可安全释放。
+ * 移动端(iOS Safari)同一页面应复用识别器实例，避免反复 abort 触发权限弹窗与 aborted 误报。
  */
 
 /** 取得浏览器的 SpeechRecognition 构造器(兼容 webkit 前缀) */
@@ -62,7 +61,7 @@ export interface Recognizer {
 }
 
 /**
- * 创建一个日语识别器。
+ * 创建一个日语识别器（单实例可多次 start/stop）。
  * 不支持时返回 null(调用方据此走降级)。
  * @param timeoutMs 最长识别时长，超时自动停止(默认 8s)
  */
@@ -80,6 +79,10 @@ export function createRecognizer(
   let timer: ReturnType<typeof setTimeout> | null = null;
   let disposed = false;
   let running = false;
+  /** 主动 stop/dispose 时忽略紧随其后的 aborted */
+  let intentionalStop = false;
+  /** 识别尚未结束时又收到 start，则在 onend 后自动重启 */
+  let pendingStart = false;
 
   const clearTimer = () => {
     if (timer) {
@@ -88,8 +91,7 @@ export function createRecognizer(
     }
   };
 
-  const buildInstance = (): SpeechRecognition => {
-    const inst = new Ctor();
+  const bindHandlers = (inst: SpeechRecognition) => {
     inst.lang = "ja-JP";
     inst.continuous = false;
     inst.interimResults = true;
@@ -111,58 +113,100 @@ export function createRecognizer(
     };
 
     inst.onerror = (event) => {
-      callbacks.onError?.(classifyError(event.error), event.message || event.error);
+      const kind = classifyError(event.error);
+      if (kind === "aborted" && intentionalStop) {
+        intentionalStop = false;
+        return;
+      }
+      intentionalStop = false;
+      callbacks.onError?.(kind, event.message || event.error);
     };
 
     inst.onend = () => {
       running = false;
       clearTimer();
+      if (pendingStart && !disposed) {
+        pendingStart = false;
+        doStart();
+        return;
+      }
       callbacks.onEnd?.();
     };
+  };
 
-    return inst;
+  const newInstance = () => {
+    recognition = new Ctor();
+    bindHandlers(recognition);
+  };
+
+  const doStart = () => {
+    if (disposed) return;
+    if (!recognition) newInstance();
+
+    try {
+      intentionalStop = false;
+      running = true;
+      recognition!.start();
+      clearTimer();
+      timer = setTimeout(() => stop(), timeoutMs);
+    } catch {
+      // iOS 偶发 InvalidStateError：重建实例后再试一次
+      running = false;
+      if (disposed) return;
+      try {
+        newInstance();
+        intentionalStop = false;
+        running = true;
+        recognition!.start();
+        clearTimer();
+        timer = setTimeout(() => stop(), timeoutMs);
+      } catch (err) {
+        running = false;
+        const message = err instanceof Error ? err.message : "识别启动失败";
+        callbacks.onError?.("unknown", message);
+      }
+    }
   };
 
   const start = () => {
-    if (disposed || running) return;
-    try {
-      recognition = buildInstance();
-      running = true;
-      recognition.start();
-      // 超时保护：到点强制停止
-      clearTimer();
-      timer = setTimeout(() => stop(), timeoutMs);
-    } catch (err) {
-      running = false;
-      const message = err instanceof Error ? err.message : "识别启动失败";
-      callbacks.onError?.("unknown", message);
+    if (disposed) return;
+    if (running) {
+      pendingStart = true;
+      stop();
+      return;
     }
+    doStart();
   };
 
   const stop = () => {
     clearTimer();
-    if (!recognition) return;
+    if (!recognition || !running) return;
+    intentionalStop = true;
     try {
       recognition.stop();
     } catch {
-      // 忽略停止异常
+      intentionalStop = false;
     }
   };
 
   const dispose = () => {
     disposed = true;
+    pendingStart = false;
     clearTimer();
-    if (recognition) {
-      try {
-        recognition.onresult = null;
-        recognition.onerror = null;
-        recognition.onend = null;
+    if (!recognition) return;
+    try {
+      recognition.onresult = null;
+      recognition.onerror = null;
+      recognition.onend = null;
+      if (running) {
+        intentionalStop = true;
         recognition.abort();
-      } catch {
-        // 忽略释放异常
       }
-      recognition = null;
+    } catch {
+      // 忽略释放异常
     }
+    recognition = null;
+    running = false;
   };
 
   return { start, stop, dispose };

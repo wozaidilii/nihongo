@@ -1,30 +1,38 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-用 VoxCPM2 Voice Design 为各职业专属技能生成中二动漫配音。
+用 VoxCPM2 为「勇者日语探险」生成配音。
+
+- 选职业试听：Voice Design（括号内音色描述 + 示例台词）
+- 技能咒文：以对应语体 sample 为参考克隆，仅合成 incantation 原文（避免念错咒文）
 
 运行:
   VoxCPM/.venv/bin/python scripts/generate_voices.py
+  VoxCPM/.venv/bin/python scripts/generate_voices.py --skills-only   # 仅重生成技能
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import re
 import sys
 
 import soundfile as sf
 from voxcpm import VoxCPM
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT_DIR = os.path.normpath(os.path.join(HERE, "..", "public", "voices"))
+ROOT = os.path.normpath(os.path.join(HERE, ".."))
+OUT_DIR = os.path.normpath(os.path.join(ROOT, "public", "voices"))
+SKILLS_TS = os.path.join(ROOT, "src", "data", "skills.ts")
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# 语体示例(选职业试听)
+# Voice Design 音色描述（仅用于 sample_*.wav）
 PERSONA = {
-    "keigo": "(A noble young knight, gallant and dignified male voice, elegant, heroic and passionate, dramatic Japanese anime style)",
-    "chuuni": "(A theatrical dark sorcerer, intense over-the-top chuunibyou young male voice, brooding, grandiose and powerful, highly dramatic Japanese anime style)",
-    "tameguchi": "(A cheeky confident teenage rogue, playful energetic and cool male voice, smirking and mischievous, lively Japanese anime style)",
+    "keigo": "(A noble young knight, gallant and dignified male voice, elegant, heroic, dramatic Japanese anime style)",
+    "chuuni": "(A theatrical dark sorcerer, intense chuunibyou young male voice, brooding, grandiose, dramatic Japanese anime style)",
+    "tameguchi": "(A cheeky confident teenage rogue, playful energetic cool male voice, smirking, lively Japanese anime style)",
     "bushi": "(A stern old samurai, deep resolute gravelly male voice, solemn bushido warrior, dramatic Japanese anime style)",
 }
 
@@ -35,7 +43,6 @@ SAMPLES = {
     "bushi": "拙者の刃、いざ唸るでござる！",
 }
 
-# 职业 → 语体 persona
 CLASS_PERSONA = {
     "knight": "keigo",
     "mage": "chuuni",
@@ -43,53 +50,98 @@ CLASS_PERSONA = {
     "samurai": "bushi",
 }
 
-# 职业专属技能咒文(与 src/data/skills.ts 对齐)
-CLASS_SKILLS: dict[str, list[tuple[str, str]]] = {
-    "knight": [
-        ("k-shield", "盾よ、我を護れ"),
-        ("k-smite", "正道の光よ、裁け"),
-        ("k-oath", "我が誓い、悪を断つ"),
-        ("k-judgment", "神よ、裁きをください"),
-    ],
-    "mage": [
-        ("m-orb", "我が左手に、闇黒の球"),
-        ("m-whisper", "禁じられた言霊よ、起きよ"),
-        ("m-storm", "終焉の嵐、我に従え"),
-        ("m-void", "虚無よ、全てを呑め"),
-    ],
-    "rogue": [
-        ("r-shadow", "影に乗って、いくぜ"),
-        ("r-stab", "背中から、一刺しだ"),
-        ("r-volt", "サッと決める、雷だぜ"),
-        ("r-finisher", "これで終わりだぜ"),
-    ],
-    "samurai": [
-        ("s-iai", "拙者、居合にて斬るでござる"),
-        ("s-wind", "風よ、刃となれでござる"),
-        ("s-thunder", "雷鳴と共に、斬るでござる"),
-        ("s-mushin", "無心の剣、いざ放つでござる"),
-    ],
-}
+
+def load_class_skills_from_ts() -> dict[str, list[tuple[str, str]]]:
+    """从 skills.ts 读取 (skillId, incantation)，保证与游戏数据一致。"""
+    if not os.path.isfile(SKILLS_TS):
+        raise FileNotFoundError(f"找不到 {SKILLS_TS}")
+
+    content = open(SKILLS_TS, encoding="utf-8").read()
+    result: dict[str, list[tuple[str, str]]] = {
+        "knight": [],
+        "mage": [],
+        "rogue": [],
+        "samurai": [],
+    }
+
+    # 匹配每个技能块：classId + id + incantation
+    for block in re.finditer(
+        r'\{\s*id:\s*"([^"]+)"\s*,\s*classId:\s*"(knight|mage|rogue|samurai)"[\s\S]*?incantation:\s*"([^"]+)"',
+        content,
+    ):
+        skill_id, class_id, incantation = block.group(1), block.group(2), block.group(3)
+        result[class_id].append((skill_id, incantation))
+
+    for class_id, items in result.items():
+        if not items:
+            raise ValueError(f"skills.ts 中未解析到 {class_id} 的技能")
+    return result
 
 
-def build_jobs() -> list[tuple[str, str, str, str]]:
-    """(key, filename, styleId, text)"""
-    jobs: list[tuple[str, str, str, str]] = []
-    for style, text in SAMPLES.items():
-        jobs.append((f"sample_{style}", f"sample_{style}.wav", style, text))
-    for class_id, skills in CLASS_SKILLS.items():
+def voice_design_text(style: str, line: str) -> str:
+    """Voice Design 标准格式：(描述)要念的文本"""
+    return f"{PERSONA[style]}{line}"
+
+
+def build_jobs(skills_only: bool) -> list[tuple[str, str, str, str, str]]:
+    """
+    返回 (key, filename, styleId, speak_text, mode)
+    mode: sample | skill
+    """
+    jobs: list[tuple[str, str, str, str, str]] = []
+    if not skills_only:
+        for style, text in SAMPLES.items():
+            jobs.append((f"sample_{style}", f"sample_{style}.wav", style, text, "sample"))
+
+    class_skills = load_class_skills_from_ts()
+    for class_id, skill_list in class_skills.items():
         style = CLASS_PERSONA[class_id]
-        for skill_id, text in skills:
+        for skill_id, incantation in skill_list:
             key = f"skill_{class_id}_{skill_id}"
-            jobs.append((key, f"{key}.wav", style, text))
+            jobs.append((key, f"{key}.wav", style, incantation, "skill"))
     return jobs
 
 
-def main() -> None:
-    jobs = build_jobs()
-    print(f"[VoxCPM] 准备合成 {len(jobs)} 条台词 -> {OUT_DIR}", flush=True)
+def synthesize(model: VoxCPM, style: str, speak_text: str, mode: str) -> tuple:
+    """合成单条语音；技能用 sample 克隆，sample 用 Voice Design。"""
+    if mode == "sample":
+        prompt = voice_design_text(style, speak_text)
+        return model.generate(
+            text=prompt,
+            cfg_value=2.0,
+            inference_timesteps=16,
+        )
 
-    print("[VoxCPM] 加载模型 openbmb/VoxCPM2 …", flush=True)
+    ref_path = os.path.join(OUT_DIR, f"sample_{style}.wav")
+    if not os.path.isfile(ref_path):
+        raise FileNotFoundError(
+            f"缺少参考音频 {ref_path}，请先运行不带 --skills-only 的完整生成"
+        )
+
+    ref_text = SAMPLES[style]
+    # 克隆选职业试听音色，target 仅为技能咒文
+    return model.generate(
+        text=speak_text,
+        prompt_wav_path=ref_path,
+        prompt_text=ref_text,
+        reference_wav_path=ref_path,
+        cfg_value=2.0,
+        inference_timesteps=16,
+    )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--skills-only",
+        action="store_true",
+        help="仅重生成技能配音(依赖已有 sample_*.wav)",
+    )
+    args = parser.parse_args()
+
+    jobs = build_jobs(skills_only=args.skills_only)
+    print(f"[VoxCPM] 准备合成 {len(jobs)} 条 -> {OUT_DIR}", flush=True)
+
     model = VoxCPM.from_pretrained(
         "openbmb/VoxCPM2",
         load_denoiser=False,
@@ -99,26 +151,26 @@ def main() -> None:
     sample_rate = model.tts_model.sample_rate
     print(f"[VoxCPM] 模型就绪，采样率 {sample_rate}Hz", flush=True)
 
+    manifest_path = os.path.join(OUT_DIR, "manifest.json")
     manifest: dict[str, str] = {}
-    for i, (key, filename, style, text) in enumerate(jobs, 1):
-        prompt = f"{PERSONA[style]}{text}"
-        print(f"[{i}/{len(jobs)}] {key}: {text}", flush=True)
+    if os.path.isfile(manifest_path):
+        with open(manifest_path, encoding="utf-8") as f:
+            manifest = json.load(f)
+
+    for i, (key, filename, style, speak_text, mode) in enumerate(jobs, 1):
+        mode_label = "克隆" if mode == "skill" else "VoiceDesign"
+        print(f"[{i}/{len(jobs)}] {key} ({mode_label}): {speak_text}", flush=True)
         try:
-            wav = model.generate(
-                text=prompt,
-                cfg_value=2.0,
-                inference_timesteps=16,
-            )
+            wav = synthesize(model, style, speak_text, mode)
             out_path = os.path.join(OUT_DIR, filename)
             sf.write(out_path, wav, sample_rate)
             manifest[key] = f"/voices/{filename}"
         except Exception as e:
             print(f"   ! 合成失败({key}): {e}", file=sys.stderr, flush=True)
 
-    manifest_path = os.path.join(OUT_DIR, "manifest.json")
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
-    print(f"[VoxCPM] 完成 {len(manifest)}/{len(jobs)} 条 -> {manifest_path}", flush=True)
+    print(f"[VoxCPM] 完成 {len(jobs)} 条任务，manifest 已更新", flush=True)
 
 
 if __name__ == "__main__":

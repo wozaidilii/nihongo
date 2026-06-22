@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-生成技能特效 spritesheet + 影龙精灵。
-龙素材：OpenGameArt carnageddon「side view dragon」(CC-BY-SA 3.0)
+生成技能特效 spritesheet + LPC 影龙精灵。
+
+龙素材(LPC / OpenGameArt):
+- RPG Enemies: 11 Dragons — Stephen "Redshrike" Challener 等 (CC-BY-SA 3.0 / GPL)
+- Dragon idle animation — Daniel Stephens (Scribe)，基于 Redshrike/Surt 龙 (CC-BY-SA 3.0)
 """
 
 from __future__ import annotations
 
 import json
 import os
+import urllib.request
 from PIL import Image, ImageDraw
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
@@ -17,11 +21,15 @@ OUT_FX = os.path.join(ROOT, "public", "sprites", "fx")
 OUT_ENEMIES = os.path.join(ROOT, "public", "sprites", "enemies")
 MANIFEST_FX = os.path.join(OUT_FX, "fx-manifest.json")
 
-# 侧视龙源图(96×128 = 3×4 格，每格 32×32)
-DRAGON_SRC = os.path.join(TMP, "side_view_dragon.png")
-DRAGON_SRC_URL = "https://opengameart.org/sites/default/files/side%20view%20dragon.png"
+# LPC Redshrike 古代龙 idle 动画(3 帧，174×103)
+LPC_DRAGON_IDLE = [
+    ("dragon_idle_0.png", "https://opengameart.org/sites/default/files/0%20%5Bupdated%5D.png"),
+    ("dragon_idle_1.png", "https://opengameart.org/sites/default/files/1%20%5Bupdated%5D.png"),
+    ("dragon_idle_2.png", "https://opengameart.org/sites/default/files/2%20%5Bupdated%5D.png"),
+]
 
-FRAME = 32
+FRAME_W = 174
+FRAME_H = 103
 
 
 def _save_sheet(frames: list[Image.Image], out_path: str, meta: dict, manifest: dict, key: str) -> None:
@@ -143,28 +151,17 @@ FX_BUILDERS = {
 }
 
 
-def ensure_dragon_src() -> str:
-    """确保侧视龙源图已下载"""
-    if os.path.isfile(DRAGON_SRC):
-        return DRAGON_SRC
+def ensure_lpc_dragon_frames() -> list[str]:
+    """下载并缓存 LPC 龙 idle 帧"""
     os.makedirs(TMP, exist_ok=True)
-    import urllib.request
-
-    print(f"[dragon] 下载 {DRAGON_SRC_URL}")
-    urllib.request.urlretrieve(DRAGON_SRC_URL, DRAGON_SRC)
-    return DRAGON_SRC
-
-
-def extract_frames(src: Image.Image) -> list[Image.Image]:
-    """从 96×128 源图提取 10 帧(32×32)"""
-    frames: list[Image.Image] = []
-    for row in range(4):
-        for col in range(3):
-            x, y = col * FRAME, row * FRAME
-            fr = src.crop((x, y, x + FRAME, y + FRAME))
-            if max(p[3] for p in fr.getdata()) > 0:
-                frames.append(fr)
-    return frames
+    paths: list[str] = []
+    for filename, url in LPC_DRAGON_IDLE:
+        dest = os.path.join(TMP, filename)
+        if not os.path.isfile(dest):
+            print(f"[dragon] 下载 LPC {filename}")
+            urllib.request.urlretrieve(url, dest)
+        paths.append(dest)
+    return paths
 
 
 def flip_frame(im: Image.Image) -> Image.Image:
@@ -172,72 +169,61 @@ def flip_frame(im: Image.Image) -> Image.Image:
     return im.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
 
 
-def shadow_tint(im: Image.Image) -> Image.Image:
-    """绿龙 → 影龙紫调，保留火焰等高饱和色"""
-    px = im.load()
-    w, h = im.size
-    for y in range(h):
-        for x in range(w):
-            r, g, b, a = px[x, y]
-            if a < 16:
-                continue
-            # 火焰/红嘴：保留暖色
-            if r > 140 and g < 120:
-                px[x, y] = (min(255, r), min(255, g + 20), b, a)
-                continue
-            # 主体绿色 → 深紫青
-            lum = 0.299 * r + 0.587 * g + 0.114 * b
-            if g >= r and g >= b - 10:
-                nr = int(40 + lum * 0.35)
-                ng = int(25 + lum * 0.25)
-                nb = int(70 + lum * 0.45)
-                px[x, y] = (min(255, nr), min(255, ng), min(255, nb), a)
-            elif lum < 40:
-                px[x, y] = (r, g, min(255, b + 30), a)
-    return im
-
-
 def tint_hurt(im: Image.Image) -> Image.Image:
     """受击闪红"""
-    px = im.load()
-    w, h = im.size
+    out = im.copy()
+    px = out.load()
+    w, h = out.size
     for y in range(h):
         for x in range(w):
             r, g, b, a = px[x, y]
             if a < 16:
                 continue
-            px[x, y] = (min(255, r + 80), max(0, g - 30), max(0, b - 30), a)
-    return im
+            px[x, y] = (min(255, r + 70), max(0, g - 35), max(0, b - 35), a)
+    return out
 
 
-def upscale(im: Image.Image, scale: int = 2) -> Image.Image:
-    nw, nh = im.width * scale, im.height * scale
-    return im.resize((nw, nh), Image.Resampling.NEAREST)
+def tint_death(im: Image.Image) -> Image.Image:
+    """死亡变暗"""
+    out = im.copy()
+    px = out.load()
+    w, h = out.size
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a < 16:
+                continue
+            px[x, y] = (r // 2, g // 2, b // 2, max(0, a - 40))
+    return out
+
+
+def normalize_frame(im: Image.Image) -> Image.Image:
+    """统一帧尺寸，内容居中"""
+    canvas = Image.new("RGBA", (FRAME_W, FRAME_H), (0, 0, 0, 0))
+    im = im.convert("RGBA")
+    ox = max(0, (FRAME_W - im.width) // 2)
+    oy = max(0, (FRAME_H - im.height) // 2)
+    canvas.paste(im, (ox, oy))
+    return canvas
 
 
 def build_dragon() -> dict:
     """
-    侧视像素龙 → 影龙 spritesheet。
-    源帧序：0-2 抬头 / 3-5 展翅 idle / 6-8 扑击 / 9 吐息
+    LPC Redshrike 古代龙 + Scribe 呼吸动画 → 影龙 spritesheet。
+    idle: 0→1→2→1 循环；attack: 张口帧序列；hurt/death: 着色变体。
     """
-    path = ensure_dragon_src()
-    src = Image.open(path).convert("RGBA")
-    raw = extract_frames(src)
-    if len(raw) < 10:
-        raise RuntimeError(f"龙源图帧数不足: {len(raw)}")
+    paths = ensure_lpc_dragon_frames()
+    idle_src = [flip_frame(normalize_frame(Image.open(p))) for p in paths]
 
-    processed = [upscale(shadow_tint(flip_frame(f)), 2) for f in raw]
-    fw = processed[0].width  # 64
-
-    idle = processed[3:6]
-    attack = processed[6:10]
-    hurt = [tint_hurt(processed[4].copy())]
-    death = [processed[9].copy()]
+    idle = [idle_src[0], idle_src[1], idle_src[2], idle_src[1]]
+    attack = [idle_src[2], idle_src[1], idle_src[0]]
+    hurt = [tint_hurt(idle_src[1])]
+    death = [tint_death(idle_src[0])]
 
     anims_data = {"idle": idle, "attack": attack, "hurt": hurt, "death": death}
     order = ["idle", "attack", "hurt", "death"]
-    max_w = max(len(anims_data[k]) for k in order) * fw
-    out_h = len(order) * fw
+    max_w = max(len(anims_data[k]) for k in order) * FRAME_W
+    out_h = len(order) * FRAME_H
     sheet = Image.new("RGBA", (max_w, out_h), (0, 0, 0, 0))
     meta_anims = {}
 
@@ -246,21 +232,21 @@ def build_dragon() -> dict:
         meta_anims[key] = {
             "row": ri,
             "frames": list(range(len(frames))),
-            "fps": {"idle": 5, "attack": 10, "hurt": 4, "death": 4}.get(key, 6),
+            "fps": {"idle": 4, "attack": 8, "hurt": 4, "death": 3}.get(key, 6),
         }
         for ci, fr in enumerate(frames):
-            sheet.paste(fr, (ci * fw, ri * fw))
+            sheet.paste(fr, (ci * FRAME_W, ri * FRAME_H))
 
     out_path = os.path.join(OUT_ENEMIES, "dragon.png")
     sheet.save(out_path)
 
     return {
         "sheet": "/sprites/enemies/dragon.png",
-        "frameWidth": fw,
-        "frameHeight": fw,
+        "frameWidth": FRAME_W,
+        "frameHeight": FRAME_H,
         "sheetWidth": max_w,
         "sheetHeight": out_h,
-        "scale": 1.75,
+        "scale": 1,
         "flipX": False,
         "animations": meta_anims,
     }
@@ -277,7 +263,7 @@ def main() -> None:
         print(f"[fx] {key} -> {out}")
 
     dragon_meta = build_dragon()
-    print(f"[dragon] side-view shadow dragon -> {os.path.join(OUT_ENEMIES, 'dragon.png')}")
+    print(f"[dragon] LPC Redshrike ancient dragon -> {os.path.join(OUT_ENEMIES, 'dragon.png')}")
 
     with open(MANIFEST_FX, "w", encoding="utf-8") as f:
         json.dump(fx_manifest, f, ensure_ascii=False, indent=2)

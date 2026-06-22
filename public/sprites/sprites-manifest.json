@@ -255,11 +255,11 @@
     },
     "dragon": {
       "sheet": "/sprites/enemies/dragon.png",
-      "frameWidth": 64,
-      "frameHeight": 64,
-      "sheetWidth": 256,
-      "sheetHeight": 256,
-      "scale": 1.75,
+      "frameWidth": 174,
+      "frameHeight": 103,
+      "sheetWidth": 696,
+      "sheetHeight": 412,
+      "scale": 1,
       "flipX": false,
       "animations": {
         "idle": {
@@ -267,19 +267,19 @@
           "frames": [
             0,
             1,
-            2
+            2,
+            3
           ],
-          "fps": 5
+          "fps": 4
         },
         "attack": {
           "row": 1,
           "frames": [
             0,
             1,
-            2,
-            3
+            2
           ],
-          "fps": 10
+          "fps": 8
         },
         "hurt": {
           "row": 2,
@@ -293,7 +293,7 @@
           "frames": [
             0
           ],
-          "fps": 4
+          "fps": 3
         }
       }
     }

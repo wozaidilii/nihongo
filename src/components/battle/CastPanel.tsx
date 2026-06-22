@@ -88,7 +88,7 @@ export function CastPanel({
         <button
           type="button"
           onClick={() =>
-            playVoiceOrTts(skillVoiceSrc(classId, skill.id), reading)
+            playVoiceOrTts(skillVoiceSrc(classId, skill.id), incantation)
           }
           className="mt-2 font-jp text-xs text-rpg-11 underline"
         >

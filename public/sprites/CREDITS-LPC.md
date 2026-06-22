@@ -18,7 +18,9 @@
 | 敌人 | 来源 | 许可 |
 |------|------|------|
 | 史莱姆 | [Animated Slime](https://opengameart.org/content/animated-slime) by Calciumtrice | CC-BY 3.0 |
-| 影龙 | carnageddon [side view dragon](https://opengameart.org/content/dragon-7)（紫调重着色） | CC-BY-SA 3.0 |
+| 影龙 | [RPG Enemies: 11 Dragons](https://opengameart.org/content/rpg-enemies-11-dragons)（Redshrike 等）+ [Dragon idle animation](https://opengameart.org/content/dragon-idle-animation)（Scribe） | CC-BY-SA 3.0 / GPL 3.0 |
+
+影龙署名：Stephen "Redshrike" Challener、Surt（原设）、Daniel Stephens / Scribe（呼吸动画）
 
 技能特效为项目内生成（`scripts/build_fx_and_dragon.py`）。
 
@@ -31,3 +33,5 @@ python3 scripts/build_lpc_sprites.py
 # 影龙 + 技能特效
 python3 scripts/build_fx_and_dragon.py
 ```
+
+生成结果位于 `public/sprites/heroes/`、`public/sprites/enemies/` 与 `sprites-manifest.json`。

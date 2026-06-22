@@ -248,11 +248,11 @@ def build_slime() -> tuple[Image.Image, dict]:
 
 
 def build_dragon() -> tuple[Image.Image, dict]:
-    """影龙：由 scripts/build_fx_and_dragon.py 从侧视像素龙生成，此处仅作 lpc 脚本占位。"""
-    path = os.path.join(TMP, "side_view_dragon.png")
-    if not os.path.isfile(path):
+    """影龙由 scripts/build_fx_and_dragon.py 从 LPC 素材生成。"""
+    dragon_path = os.path.join(OUT_ENEMIES, "dragon.png")
+    if not os.path.isfile(dragon_path):
         raise FileNotFoundError("请先运行 scripts/build_fx_and_dragon.py 生成 dragon.png")
-    sheet = Image.open(os.path.join(OUT_ENEMIES, "dragon.png")).convert("RGBA")
+    sheet = Image.open(dragon_path).convert("RGBA")
     with open(MANIFEST_PATH, encoding="utf-8") as f:
         manifest = json.load(f)
     return sheet, manifest["enemies"]["dragon"]

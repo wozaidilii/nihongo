@@ -1,6 +1,10 @@
 import type { HeroClassId, SkillTreeModifiers, SkillTreeNode } from "~/types";
 
-/** 四职业双分支技能树（每分支 Lv2 → Lv3 各一层） */
+/**
+ * 四职业双分支技能树（经典 RPG 简化模板：根 → 分支 A/B → 各 1 进阶）。
+ * 结构参考 D2 / POE 早期双专精；数值为轻度加成，不替换咒文。
+ * 图标见 src/data/skillIcons.ts + public/sprites/icons/
+ */
 export const SKILL_TREES: Record<HeroClassId, SkillTreeNode[]> = {
   knight: [
     {

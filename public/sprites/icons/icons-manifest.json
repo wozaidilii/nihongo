@@ -1,0 +1,77 @@
+{
+  "sheet": "/sprites/icons/icons.png",
+  "frameWidth": 32,
+  "frameHeight": 32,
+  "sheetWidth": 128,
+  "sheetHeight": 96,
+  "icons": {
+    "fire": {
+      "col": 0,
+      "row": 0,
+      "kyriseSource": "potion_03f.png"
+    },
+    "holy": {
+      "col": 1,
+      "row": 0,
+      "kyriseSource": "shield_03b.png"
+    },
+    "shadow": {
+      "col": 2,
+      "row": 0,
+      "kyriseSource": "book_05a.png"
+    },
+    "slash": {
+      "col": 3,
+      "row": 0,
+      "kyriseSource": "sword_03a.png"
+    },
+    "dagger": {
+      "col": 0,
+      "row": 1,
+      "kyriseSource": "sword_02a.png"
+    },
+    "lightning": {
+      "col": 1,
+      "row": 1,
+      "kyriseSource": "crystal_01h.png"
+    },
+    "thrust": {
+      "col": 2,
+      "row": 1,
+      "kyriseSource": "arrow_03a.png"
+    },
+    "hp-up": {
+      "col": 3,
+      "row": 1,
+      "kyriseSource": "potion_01h.png"
+    },
+    "crit-up": {
+      "col": 0,
+      "row": 2,
+      "kyriseSource": "gem_01f.png"
+    },
+    "power-up": {
+      "col": 1,
+      "row": 2,
+      "kyriseSource": "ingot_01e.png"
+    },
+    "guard": {
+      "col": 2,
+      "row": 2,
+      "kyriseSource": "shield_03a.png"
+    },
+    "void": {
+      "col": 3,
+      "row": 2,
+      "kyriseSource": "scroll_01f.png"
+    }
+  },
+  "credits": {
+    "pack": "Kyrise's Free 16x16 RPG Icon Pack",
+    "author": "Kyrise",
+    "license": "CC BY 4.0",
+    "url": "https://opengameart.org/content/kyrises-free-16x16-rpg-icon-pack",
+    "itchUrl": "https://kyrise.itch.io/",
+    "attribution": "Graphics made by Kyrise: https://kyrise.itch.io/"
+  }
+}

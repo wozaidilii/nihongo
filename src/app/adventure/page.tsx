@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import { STAGES_ORDERED, isStageUnlocked } from "~/data/stages";
 import { getHeroClass, getStyleForClass } from "~/data/classes";
 import { getChosenBranch, getAvailableSkillPicks, SKILL_TREES } from "~/data/skillTree";
+import { SKILL_TREE_ICON } from "~/data/skillIcons";
 import { MapNode } from "~/components/game/MapNode";
 import { SkillTreeModal } from "~/components/game/SkillTreeModal";
+import { SkillTreeView } from "~/components/game/SkillTreeView";
+import { SkillIcon } from "~/components/pixel/SkillIcon";
 import { PixelButton } from "~/components/pixel/PixelButton";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { CharacterSprite } from "~/components/pixel/CharacterSprite";
@@ -105,15 +108,29 @@ export default function AdventurePage() {
       {unlockedNodes.length > 0 && (
         <PixelPanel>
           <p className="font-pixel text-[10px] text-rpg-5">已解锁技能</p>
-          <ul className="mt-2 space-y-1">
+          <ul className="mt-2 flex flex-wrap gap-3">
             {unlockedNodes.map((n) => (
-              <li key={n.id} className="font-jp text-xs text-rpg-12">
-                {n.nameZh} — {n.description}
+              <li key={n.id} className="flex items-center gap-2">
+                <SkillIcon
+                  iconKey={SKILL_TREE_ICON[n.id] ?? "power-up"}
+                  size={28}
+                  title={n.nameZh}
+                />
+                <span className="font-jp text-xs text-rpg-12">
+                  {n.nameZh} — {n.description}
+                </span>
               </li>
             ))}
           </ul>
         </PixelPanel>
       )}
+
+      <SkillTreeView
+        classId={classId}
+        level={level}
+        unlockedIds={skillTreeUnlocked}
+        onPick={hasPendingSkillPick() ? unlockSkillNode : undefined}
+      />
 
       <header className="text-center">
         <h1 className="font-pixel text-lg text-rpg-5">冒险地图</h1>

@@ -9,7 +9,8 @@
     "preview": "next build && next start",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "verify:voices": "node scripts/verify_voices.mjs"
+    "verify:voices": "node scripts/verify_voices.mjs",
+    "build:icons": "python3 scripts/build_skill_icons.py"
   },
   "dependencies": {
     "@t3-oss/env-nextjs": "^0.12.0",

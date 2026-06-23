@@ -50,3 +50,7 @@ VoxCPM/
 
 # LPC 原始素材缓存(运行 scripts/build_lpc_sprites.py 时下载)
 public/sprites/_tmp/
+
+# Kyrise 完整包（仓库仅保留选用到的 public/sprites/icons/kyrise/*.png）
+public/sprites/icons/_src/kyrise/*.zip
+public/sprites/icons/_src/kyrise/extracted/

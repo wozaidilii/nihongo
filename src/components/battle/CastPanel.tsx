@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { HeroClassId, Skill } from "~/types";
 import { incantationFor, readingFor, romajiFor } from "~/lib/speech";
+import { iconKeyForSkill } from "~/data/skillIcons";
 import { playVoiceOrTts, skillVoiceSrc } from "~/lib/voice";
 import { useSpeechCast, type CastPhase, type CastResult } from "~/hooks/useSpeechCast";
 import {
@@ -12,6 +13,7 @@ import {
 } from "~/lib/match";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { PixelButton } from "~/components/pixel/PixelButton";
+import { SkillIcon } from "~/components/pixel/SkillIcon";
 
 interface CastPanelProps {
   skill: Skill;
@@ -75,10 +77,19 @@ export function CastPanel({
     <PixelPanel className="w-full">
       <div className="text-center">
         {/* 技能名：仅展示，不参与判定 */}
-        <p className="font-pixel text-[10px] text-rpg-14">技能名（不用念）</p>
-        <p className="font-jp text-sm text-rpg-12">
-          {skill.nameJa}（{skill.nameZh}）
-        </p>
+        <div className="flex items-center justify-center gap-2">
+          <SkillIcon
+            iconKey={iconKeyForSkill(skill.fxKey)}
+            size={36}
+            title={skill.nameZh}
+          />
+          <div className="text-left">
+            <p className="font-pixel text-[10px] text-rpg-14">技能名（不用念）</p>
+            <p className="font-jp text-sm text-rpg-12">
+              {skill.nameJa}（{skill.nameZh}）
+            </p>
+          </div>
+        </div>
 
         {/* 咏唱咒文：玩家实际要念的内容 */}
         <div className="mt-3 border-t-2 border-dashed border-rpg-15 pt-3">

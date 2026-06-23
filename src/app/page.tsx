@@ -2,56 +2,74 @@
 
 import { useRouter } from "next/navigation";
 import { TitleCover } from "~/components/game/TitleCover";
+import { PageShell } from "~/components/game/PageShell";
 import { PixelButton } from "~/components/pixel/PixelButton";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { useGameReady } from "~/hooks/useGameReady";
+import { useLocale } from "~/hooks/useLocale";
 import { useGameStore } from "~/store/game";
 import { getHeroClass } from "~/data/classes";
+import { formatMessage, heroName, messages, t } from "~/i18n/messages";
 
 export default function TitlePage() {
   const router = useRouter();
   const ready = useGameReady();
+  const { locale } = useLocale();
   const classId = useGameStore((s) => s.classId);
   const level = useGameStore((s) => s.level);
   const hero = getHeroClass(classId);
 
   const hasSave = ready && !!hero;
+  const heroLabel = hero ? heroName(hero.id, locale) : "";
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-4 sm:gap-8 sm:p-6">
-      <TitleCover />
+    <PageShell centered className="gap-6 sm:gap-8">
+      <TitleCover locale={locale} />
 
       <PixelPanel tone="dialog" className="relative z-10 w-full max-w-md">
         <div className="flex flex-col gap-4">
           {hasSave ? (
             <>
               <p className="font-jp text-sm text-rpg-13">
-                欢迎回来，
-                <span className="text-rpg-5">{hero?.nameZh}</span> 勇者 (Lv.{level})！
+                {formatMessage(t(messages.home.welcomeBack, locale), {
+                  name: heroLabel,
+                  level,
+                })}
               </p>
-              <PixelButton variant="gold" onClick={() => router.push("/adventure")}>
-                继续冒险
+              <PixelButton
+                variant="gold"
+                className="w-full sm:w-auto"
+                onClick={() => router.push("/adventure")}
+              >
+                {t(messages.home.continueAdventure, locale)}
               </PixelButton>
-              <PixelButton onClick={() => router.push("/select")}>
-                重选职业
+              <PixelButton
+                className="w-full sm:w-auto"
+                onClick={() => router.push("/select")}
+              >
+                {t(messages.home.reselectClass, locale)}
               </PixelButton>
             </>
           ) : (
             <>
               <p className="font-jp text-sm text-rpg-13">
-                选择职业开始冒险。不同职业学习不同的日语说话方式！
+                {t(messages.home.newPlayerHint, locale)}
               </p>
-              <PixelButton variant="gold" onClick={() => router.push("/select")}>
-                开始冒险
+              <PixelButton
+                variant="gold"
+                className="w-full sm:w-auto"
+                onClick={() => router.push("/select")}
+              >
+                {t(messages.home.startAdventure, locale)}
               </PixelButton>
             </>
           )}
         </div>
       </PixelPanel>
 
-      <p className="relative z-10 font-pixel text-[10px] text-rpg-15">
-        建议使用 Chrome / Edge 以获得语音识别体验
+      <p className="relative z-10 px-2 text-center font-pixel text-[9px] text-rpg-15 sm:text-[10px]">
+        {t(messages.home.browserTip, locale)}
       </p>
-    </main>
+    </PageShell>
   );
 }

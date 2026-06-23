@@ -5,15 +5,19 @@ import { useRouter } from "next/navigation";
 import type { HeroClassId } from "~/types";
 import { HERO_CLASSES } from "~/data/classes";
 import { ClassCard } from "~/components/game/ClassCard";
+import { PageShell } from "~/components/game/PageShell";
 import { PixelButton } from "~/components/pixel/PixelButton";
 import { useGameReady } from "~/hooks/useGameReady";
+import { useLocale } from "~/hooks/useLocale";
 import { useGameStore } from "~/store/game";
 import { playVoiceOrTts, styleSampleSrc } from "~/lib/voice";
 import { SPEECH_STYLES } from "~/data/classes";
+import { messages, t } from "~/i18n/messages";
 
 export default function SelectPage() {
   const router = useRouter();
   useGameReady();
+  const { locale } = useLocale();
   const savedClassId = useGameStore((s) => s.classId);
   const selectClass = useGameStore((s) => s.selectClass);
 
@@ -21,7 +25,6 @@ export default function SelectPage() {
 
   const handleSelect = (id: HeroClassId) => {
     setPicked(id);
-    // 试听该职业语体示例：优先 VoxCPM 中二配音，缺失时回退浏览器 TTS
     const cls = HERO_CLASSES.find((c) => c.id === id);
     if (cls) {
       const sample = SPEECH_STYLES[cls.styleId]?.sample ?? "";
@@ -36,11 +39,13 @@ export default function SelectPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 p-6">
+    <PageShell width="lg">
       <header className="text-center">
-        <h1 className="font-pixel text-xl text-rpg-5">选择你的职业</h1>
-        <p className="mt-2 font-jp text-sm text-rpg-14">
-          职业决定你的日语说话方式 —— 点击试听语体示例
+        <h1 className="font-pixel text-lg text-rpg-5 sm:text-xl">
+          {t(messages.select.title, locale)}
+        </h1>
+        <p className="mt-2 font-jp text-xs text-rpg-14 sm:text-sm">
+          {t(messages.select.subtitle, locale)}
         </p>
       </header>
 
@@ -49,22 +54,26 @@ export default function SelectPage() {
           <ClassCard
             key={hero.id}
             hero={hero}
+            locale={locale}
             selected={picked === hero.id}
             onSelect={handleSelect}
           />
         ))}
       </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <PixelButton onClick={() => router.push("/")}>← 返回</PixelButton>
+      <div className="mt-auto flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <PixelButton className="w-full sm:w-auto" onClick={() => router.push("/")}>
+          {t(messages.common.back, locale)}
+        </PixelButton>
         <PixelButton
           variant="gold"
+          className="w-full sm:w-auto"
           disabled={!picked}
           onClick={handleConfirm}
         >
-          {picked ? "确定，出发！" : "请先选择职业"}
+          {picked ? t(messages.select.confirm, locale) : t(messages.select.pickFirst, locale)}
         </PixelButton>
       </div>
-    </main>
+    </PageShell>
   );
 }

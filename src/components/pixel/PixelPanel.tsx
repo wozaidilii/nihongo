@@ -14,7 +14,7 @@ export function PixelPanel({
 }: PixelPanelProps) {
   const base = tone === "dialog" ? "pixel-dialog" : "pixel-panel";
   return (
-    <div className={`${base} p-5 ${className}`} {...rest}>
+    <div className={`${base} p-4 sm:p-5 ${className}`} {...rest}>
       {children}
     </div>
   );

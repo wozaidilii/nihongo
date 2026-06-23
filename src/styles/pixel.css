@@ -15,6 +15,28 @@
   image-rendering: pixelated;
 }
 
+@media (max-width: 639px) {
+  .pixel-panel,
+  .pixel-dialog {
+    border-width: 3px;
+    box-shadow:
+      0 0 0 2px var(--color-rpg-13),
+      0 0 0 4px var(--color-rpg-1),
+      4px 4px 0 4px rgba(0, 0, 0, 0.45);
+  }
+
+  .title-cover-bg {
+    box-shadow:
+      0 0 0 3px var(--color-rpg-13),
+      0 0 0 6px var(--color-rpg-1),
+      6px 6px 0 0 rgba(0, 0, 0, 0.5);
+  }
+
+  .title-cover {
+    min-height: 280px;
+  }
+}
+
 /* 深色对话框(经典 NES 深蓝) */
 .pixel-dialog {
   background-color: var(--color-rpg-1);

@@ -7,7 +7,10 @@ import {
   type CastErrorKind,
   type Recognizer,
 } from "~/lib/speechRecognition";
-import { scoreSkillCastDetailed, matchPathLabel } from "~/lib/match";
+import { scoreSkillCastDetailed } from "~/lib/match";
+import { matchPathLabelLocalized } from "~/i18n/content";
+import { speechErrorText } from "~/i18n/messages";
+import { useLocaleStore } from "~/store/locale";
 
 /** 咏唱比对目标：咒文原文 + 假名读音 + 可选关卡（第一关宽容评分） */
 export interface CastTarget {
@@ -52,24 +55,10 @@ export interface UseSpeechCastReturn {
   reset: () => void;
 }
 
-/** 把错误类别转成中文提示 */
+/** 把错误类别转成本地化提示 */
 function errorText(kind: CastErrorKind): string {
-  switch (kind) {
-    case "unsupported":
-      return "当前浏览器不支持语音识别，已切换为手动输入。";
-    case "not-allowed":
-      return "麦克风权限被拒绝，已切换为手动输入。";
-    case "no-speech":
-      return "没有听清，请再念一次咒文！";
-    case "audio-capture":
-      return "找不到麦克风设备，已切换为手动输入。";
-    case "network":
-      return "网络异常，语音识别暂不可用，请手动输入。";
-    case "aborted":
-      return "咏唱被中断了。";
-    default:
-      return "语音识别出错，请重试或手动输入。";
-  }
+  const locale = useLocaleStore.getState().locale;
+  return speechErrorText(kind, locale);
 }
 
 /**
@@ -107,7 +96,7 @@ export function useSpeechCast(): UseSpeechCastReturn {
       heard,
       accuracy: detail.accuracy,
       success: detail.accuracy > 0,
-      matchPath: matchPathLabel(detail.matchPath),
+      matchPath: matchPathLabelLocalized(detail.matchPath, useLocaleStore.getState().locale),
     };
     setResult(res);
     setPhase("scored");
@@ -214,7 +203,7 @@ export function useSpeechCast(): UseSpeechCastReturn {
         heard: text,
         accuracy: detail.accuracy,
         success: detail.accuracy > 0,
-        matchPath: matchPathLabel(detail.matchPath),
+        matchPath: matchPathLabelLocalized(detail.matchPath, useLocaleStore.getState().locale),
       };
       setResult(res);
       setPhase("scored");

@@ -1,16 +1,25 @@
 import "~/styles/globals.css";
 import "~/styles/pixel.css";
 
-import { type Metadata } from "next";
+import { type Metadata, type Viewport } from "next";
 import { Press_Start_2P, DotGothic16 } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 
 import { TRPCReactProvider } from "~/trpc/react";
+import { SiteChrome } from "~/components/game/SiteChrome";
 
 export const metadata: Metadata = {
-  title: "吟唱勇者 | 中二咒文学日语",
-  description: "通过勇者探险与中二咒文学习日语：选择职业，念出咒文释放技能！",
+  title: "Chant Hero | Learn Japanese via Chants",
+  description:
+    "Learn Japanese through hero adventures and chuuni chants: pick a class and cast spells by voice!",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#1a1c2c",
 };
 
 // 英文/数字：经典 8-bit 像素体
@@ -35,7 +44,9 @@ export default function RootLayout({
   return (
     <html lang="ja" className={`${pressStart.variable} ${dotGothic.variable}`}>
       <body className="min-h-screen">
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <TRPCReactProvider>
+          <SiteChrome>{children}</SiteChrome>
+        </TRPCReactProvider>
         <Analytics />
       </body>
     </html>

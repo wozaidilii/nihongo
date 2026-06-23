@@ -23,7 +23,7 @@ export function PixelButton({
 }: PixelButtonProps) {
   return (
     <button
-      className={`pixel-btn font-pixel px-4 py-3 text-xs leading-relaxed tracking-wide ${VARIANT_CLASS[variant]} ${className}`}
+      className={`pixel-btn font-pixel min-h-11 px-4 py-3 text-xs leading-relaxed tracking-wide sm:min-h-0 ${VARIANT_CLASS[variant]} ${className}`}
       {...rest}
     >
       {children}

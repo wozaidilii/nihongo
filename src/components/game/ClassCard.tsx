@@ -1,19 +1,29 @@
 "use client";
 
 import type { HeroClass } from "~/types";
+import type { Locale } from "~/i18n/types";
 import { SPEECH_STYLES } from "~/data/classes";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { CharacterSprite } from "~/components/pixel/CharacterSprite";
+import {
+  getClassDescription,
+  getSpeechStyleName,
+  heroName,
+  messages,
+  t,
+} from "~/i18n";
 
 interface ClassCardProps {
   hero: HeroClass;
+  locale: Locale;
   selected: boolean;
   onSelect: (id: HeroClass["id"]) => void;
 }
 
 /** 职业选择卡片：展示职业、语体与属性 */
-export function ClassCard({ hero, selected, onSelect }: ClassCardProps) {
+export function ClassCard({ hero, locale, selected, onSelect }: ClassCardProps) {
   const style = SPEECH_STYLES[hero.styleId];
+  const name = heroName(hero.id, locale);
 
   return (
     <button
@@ -39,23 +49,26 @@ export function ClassCard({ hero, selected, onSelect }: ClassCardProps) {
             fallbackGlyph={hero.sprite}
             state="idle"
             bob={selected}
-            label={hero.nameZh}
+            label={name}
           />
           <div>
-            <p className="font-pixel text-sm text-rpg-5">{hero.nameZh}</p>
+            <p className="font-pixel text-sm text-rpg-5">{name}</p>
             <p className="font-jp text-xs text-rpg-12">{hero.nameJa}</p>
           </div>
         </div>
 
         <p className="mt-3 font-jp text-xs leading-relaxed text-rpg-13">
-          {hero.description}
+          {getClassDescription(hero, locale)}
         </p>
 
         <div className="mt-3 border-t-2 border-rpg-15 pt-3">
           <p className="font-jp text-xs text-rpg-6">
-            语体：{style?.nameZh}（{style?.nameJa}）
+            {t(messages.common.speechStyle, locale)}：{style ? getSpeechStyleName(style, locale) : ""}
+            （{style?.nameJa}）
           </p>
-          <p className="font-jp text-xs text-rpg-14">口癖：{style?.signature}</p>
+          <p className="font-jp text-xs text-rpg-14">
+            {t(messages.common.signature, locale)}：{style?.signature}
+          </p>
           <p className="mt-1 font-jp text-[11px] text-rpg-14">
             「{style?.sample}」
           </p>
@@ -67,7 +80,9 @@ export function ClassCard({ hero, selected, onSelect }: ClassCardProps) {
         </div>
 
         {selected && (
-          <p className="mt-3 font-pixel text-[10px] text-rpg-5">▶ 已选择</p>
+          <p className="mt-3 font-pixel text-[10px] text-rpg-5">
+            {t(messages.classCard.selected, locale)}
+          </p>
         )}
       </PixelPanel>
     </button>

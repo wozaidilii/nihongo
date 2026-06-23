@@ -32,8 +32,53 @@ html,
 body {
   background-color: var(--color-rpg-1);
   color: var(--color-rpg-13);
-  /* 默认日文体，英文/数字在组件内单独指定像素体 */
   font-family: var(--font-jp);
+  -webkit-tap-highlight-color: transparent;
+  text-size-adjust: 100%;
+}
+
+/* 全站页面壳：刘海/底栏安全区 + 固定语言切换器避让 */
+.page-shell {
+  gap: 1.25rem;
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+  padding-top: max(3.25rem, calc(env(safe-area-inset-top, 0px) + 2.5rem));
+}
+
+.page-shell--center {
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .page-shell {
+    gap: 1.5rem;
+    padding: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .page-shell--center {
+    gap: 2rem;
+  }
+}
+
+/* 触控设备：按钮最小点击区域 */
+@media (hover: none) and (pointer: coarse) {
+  .pixel-btn {
+    min-height: 44px;
+  }
+
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* iOS 输入框聚焦时不自动放大 */
+@media (max-width: 639px) {
+  .mobile-input {
+    font-size: 16px;
+  }
 }
 
 /* 像素图标/精灵禁用平滑，保持硬边 */

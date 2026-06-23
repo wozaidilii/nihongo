@@ -1,6 +1,7 @@
 "use client";
 
 import type { HeroClassId } from "~/types";
+import type { Locale } from "~/i18n/types";
 import {
   SKILL_TREES,
   getAvailableSkillPicks,
@@ -13,12 +14,22 @@ import {
 } from "~/data/skillIcons";
 import { SkillIcon } from "~/components/pixel/SkillIcon";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
+import {
+  getSkillTreeNodeDesc,
+  getSkillTreeNodeName,
+  getSkillTreeRootDesc,
+  getSkillTreeRootName,
+  formatMessage,
+  messages,
+  t,
+} from "~/i18n";
 
 type NodeState = "locked" | "available" | "unlocked";
 
 interface SkillTreeViewProps {
   classId: HeroClassId;
   level: number;
+  locale: Locale;
   unlockedIds: string[];
   onPick?: (nodeId: string) => void;
   compact?: boolean;
@@ -41,6 +52,7 @@ function nodeState(
 export function SkillTreeView({
   classId,
   level,
+  locale,
   unlockedIds,
   onPick,
   compact = false,
@@ -72,8 +84,8 @@ export function SkillTreeView({
 
     const inner = (
       <div
-        className={`flex flex-col items-center gap-1 rounded border-2 ${border} bg-rpg-13/80 p-2 ${
-          compact ? "min-w-[72px]" : "min-w-[88px]"
+        className={`flex flex-col items-center gap-1 rounded border-2 ${border} bg-rpg-13/80 p-1.5 sm:p-2 ${
+          compact ? "min-w-[64px]" : "min-w-[72px] sm:min-w-[88px]"
         }`}
       >
         <SkillIcon iconKey={iconKey} size={compact ? 28 : 32} dimmed={state === "locked"} title={name} />
@@ -104,18 +116,30 @@ export function SkillTreeView({
   const tier1B = branchB.find((n) => n.tier === 1);
   const tier2B = branchB.find((n) => n.tier === 2);
 
+  const branchSuffix = chosen
+    ? formatMessage(t(messages.skillTree.currentBranch, locale), {
+        branch: chosen.toUpperCase(),
+      })
+    : "";
+
   return (
     <PixelPanel className="overflow-x-auto">
-      <p className="font-pixel text-[10px] text-rpg-5">技能树 · 双分支</p>
+      <p className="font-pixel text-[10px] text-rpg-5">{t(messages.skillTree.title, locale)}</p>
       <p className="mt-1 font-jp text-[10px] text-rpg-14">
-        参考经典 RPG 双分支：Lv.2 选路线，Lv.3 在同路线进阶
-        {chosen ? ` · 当前：分支 ${chosen.toUpperCase()}` : ""}
+        {t(messages.skillTree.hint, locale)}
+        {branchSuffix}
       </p>
 
-      <div className="mt-4 flex min-w-[280px] flex-col items-center gap-3">
-        {/* 根节点 */}
+      <div className="mt-3 flex min-w-0 flex-col items-center gap-2 sm:mt-4 sm:gap-3">
         <div className="flex flex-col items-center">
-          {renderNode("root", "基础咒文", "Lv.1 默认", rootIcon, 0, "unlocked")}
+          {renderNode(
+            "root",
+            getSkillTreeRootName(locale),
+            getSkillTreeRootDesc(locale),
+            rootIcon,
+            0,
+            "unlocked",
+          )}
           <div className="h-3 w-0.5 bg-rpg-15" />
           <div className="flex w-full max-w-xs justify-center gap-8">
             <div className="h-0.5 flex-1 self-center bg-rpg-15" />
@@ -123,13 +147,12 @@ export function SkillTreeView({
           </div>
         </div>
 
-        {/* Tier 1 二选一 */}
-        <div className="flex w-full max-w-sm justify-between gap-4 px-2">
+        <div className="flex w-full max-w-sm justify-between gap-2 px-1 sm:gap-4 sm:px-2">
           {tier1A &&
             renderNode(
               tier1A.id,
-              tier1A.nameZh,
-              tier1A.description,
+              getSkillTreeNodeName(tier1A, locale),
+              getSkillTreeNodeDesc(tier1A, locale),
               SKILL_TREE_ICON[tier1A.id] ?? "power-up",
               1,
               nodeState(tier1A.id, level, tier1A.unlockLevel, unlocked, available),
@@ -137,27 +160,25 @@ export function SkillTreeView({
           {tier1B &&
             renderNode(
               tier1B.id,
-              tier1B.nameZh,
-              tier1B.description,
+              getSkillTreeNodeName(tier1B, locale),
+              getSkillTreeNodeDesc(tier1B, locale),
               SKILL_TREE_ICON[tier1B.id] ?? "power-up",
               1,
               nodeState(tier1B.id, level, tier1B.unlockLevel, unlocked, available),
             )}
         </div>
 
-        {/* 连接线 */}
-        <div className="flex w-full max-w-sm justify-between px-16">
+        <div className="flex w-full max-w-sm justify-between px-10 sm:px-16">
           <div className="h-4 w-0.5 bg-rpg-15" />
           <div className="h-4 w-0.5 bg-rpg-15" />
         </div>
 
-        {/* Tier 2 */}
-        <div className="flex w-full max-w-sm justify-between gap-4 px-2">
+        <div className="flex w-full max-w-sm justify-between gap-2 px-1 sm:gap-4 sm:px-2">
           {tier2A &&
             renderNode(
               tier2A.id,
-              tier2A.nameZh,
-              tier2A.description,
+              getSkillTreeNodeName(tier2A, locale),
+              getSkillTreeNodeDesc(tier2A, locale),
               SKILL_TREE_ICON[tier2A.id] ?? "power-up",
               2,
               chosen === "b" && !unlocked.has(tier2A.id)
@@ -167,8 +188,8 @@ export function SkillTreeView({
           {tier2B &&
             renderNode(
               tier2B.id,
-              tier2B.nameZh,
-              tier2B.description,
+              getSkillTreeNodeName(tier2B, locale),
+              getSkillTreeNodeDesc(tier2B, locale),
               SKILL_TREE_ICON[tier2B.id] ?? "power-up",
               2,
               chosen === "a" && !unlocked.has(tier2B.id)

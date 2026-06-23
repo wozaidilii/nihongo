@@ -7,6 +7,7 @@ import { getHeroClass, getStyleForClass } from "~/data/classes";
 import { getChosenBranch, getAvailableSkillPicks, SKILL_TREES } from "~/data/skillTree";
 import { SKILL_TREE_ICON } from "~/data/skillIcons";
 import { MapNode } from "~/components/game/MapNode";
+import { PageShell } from "~/components/game/PageShell";
 import { SkillTreeModal } from "~/components/game/SkillTreeModal";
 import { SkillTreeView } from "~/components/game/SkillTreeView";
 import { SkillIcon } from "~/components/pixel/SkillIcon";
@@ -14,11 +15,22 @@ import { PixelButton } from "~/components/pixel/PixelButton";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { CharacterSprite } from "~/components/pixel/CharacterSprite";
 import { useGameReady } from "~/hooks/useGameReady";
+import { useLocale } from "~/hooks/useLocale";
 import { useGameStore } from "~/store/game";
+import {
+  getSkillTreeNodeDesc,
+  getSkillTreeNodeName,
+  getSpeechStyleName,
+  heroName,
+  formatMessage,
+  messages,
+  t,
+} from "~/i18n";
 
 export default function AdventurePage() {
   const router = useRouter();
   const ready = useGameReady();
+  const { locale } = useLocale();
   const classId = useGameStore((s) => s.classId);
   const level = useGameStore((s) => s.level);
   const exp = useGameStore((s) => s.exp);
@@ -45,22 +57,24 @@ export default function AdventurePage() {
 
   if (!ready || !hero || !classId) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <p className="font-pixel text-xs text-rpg-12">加载中…</p>
-      </main>
+      <PageShell>
+        <p className="font-pixel text-xs text-rpg-12">{t(messages.common.loading, locale)}</p>
+      </PageShell>
     );
   }
 
   const unlockedNodes = (SKILL_TREES[classId] ?? []).filter((n) =>
     skillTreeUnlocked.includes(n.id),
   );
+  const heroLabel = heroName(hero.id, locale);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 p-6">
+    <PageShell>
       {showSkillTree && (
         <SkillTreeModal
           classId={classId}
           level={level}
+          locale={locale}
           unlockedIds={skillTreeUnlocked}
           onPick={(nodeId) => {
             unlockSkillNode(nodeId);
@@ -75,49 +89,60 @@ export default function AdventurePage() {
         />
       )}
 
-      <PixelPanel tone="dialog" className="flex items-center gap-4">
+      <PixelPanel tone="dialog" className="flex flex-wrap items-center gap-3 sm:gap-4">
         <CharacterSprite
           kind="hero"
           id={hero.spriteKey}
           fallbackGlyph={hero.sprite}
           state="idle"
           bob
-          label={hero.nameZh}
+          label={heroLabel}
         />
         <div className="flex-1">
           <p className="font-pixel text-sm text-rpg-5">
-            {hero.nameZh} · Lv.{level}
+            {heroLabel} · Lv.{level}
           </p>
           <p className="font-jp text-xs text-rpg-12">
-            语体：{style.nameZh}（{style.nameJa}）
+            {t(messages.common.speechStyle, locale)}：{getSpeechStyleName(style, locale)}
+            （{style.nameJa}）
           </p>
-          <p className="font-pixel text-[10px] text-rpg-14">EXP {exp}</p>
+          <p className="font-pixel text-[10px] text-rpg-14">
+            {t(messages.common.exp, locale)} {exp}
+          </p>
           {branch && (
             <p className="font-jp text-[10px] text-rpg-11">
-              技能路线：分支 {branch.toUpperCase()}
+              {formatMessage(t(messages.adventure.skillRoute, locale), {
+                branch: branch.toUpperCase(),
+              })}
             </p>
           )}
         </div>
         {hasPendingSkillPick() && (
-          <PixelButton variant="gold" onClick={() => setShowSkillTree(true)}>
-            技能+
+          <PixelButton
+            variant="gold"
+            className="w-full shrink-0 sm:ml-auto sm:w-auto"
+            onClick={() => setShowSkillTree(true)}
+          >
+            {t(messages.adventure.skillPlus, locale)}
           </PixelButton>
         )}
       </PixelPanel>
 
       {unlockedNodes.length > 0 && (
         <PixelPanel>
-          <p className="font-pixel text-[10px] text-rpg-5">已解锁技能</p>
+          <p className="font-pixel text-[10px] text-rpg-5">
+            {t(messages.adventure.unlockedSkills, locale)}
+          </p>
           <ul className="mt-2 flex flex-wrap gap-3">
             {unlockedNodes.map((n) => (
               <li key={n.id} className="flex items-center gap-2">
                 <SkillIcon
                   iconKey={SKILL_TREE_ICON[n.id] ?? "power-up"}
                   size={28}
-                  title={n.nameZh}
+                  title={getSkillTreeNodeName(n, locale)}
                 />
                 <span className="font-jp text-xs text-rpg-12">
-                  {n.nameZh} — {n.description}
+                  {getSkillTreeNodeName(n, locale)} — {getSkillTreeNodeDesc(n, locale)}
                 </span>
               </li>
             ))}
@@ -128,13 +153,15 @@ export default function AdventurePage() {
       <SkillTreeView
         classId={classId}
         level={level}
+        locale={locale}
         unlockedIds={skillTreeUnlocked}
         onPick={hasPendingSkillPick() ? unlockSkillNode : undefined}
+        compact
       />
 
       <header className="text-center">
-        <h1 className="font-pixel text-lg text-rpg-5">冒险地图</h1>
-        <p className="mt-1 font-jp text-xs text-rpg-14">选择关卡，开始讨伐！</p>
+        <h1 className="font-pixel text-lg text-rpg-5">{t(messages.adventure.mapTitle, locale)}</h1>
+        <p className="mt-1 font-jp text-xs text-rpg-14">{t(messages.adventure.mapSubtitle, locale)}</p>
       </header>
 
       <div className="flex flex-col gap-4">
@@ -142,6 +169,7 @@ export default function AdventurePage() {
           <MapNode
             key={stage.id}
             stage={stage}
+            locale={locale}
             unlocked={isStageUnlocked(stage.id, clearedStageIds)}
             cleared={clearedStageIds.includes(stage.id)}
             onEnter={(id) => router.push(`/battle/${id}`)}
@@ -149,9 +177,11 @@ export default function AdventurePage() {
         ))}
       </div>
 
-      <div className="flex justify-center">
-        <PixelButton onClick={() => router.push("/")}>← 返回标题</PixelButton>
+      <div className="flex justify-center pb-2">
+        <PixelButton className="w-full max-w-xs sm:w-auto" onClick={() => router.push("/")}>
+          {t(messages.common.backToTitle, locale)}
+        </PixelButton>
       </div>
-    </main>
+    </PageShell>
   );
 }

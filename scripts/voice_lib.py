@@ -9,6 +9,8 @@ import os
 import re
 from typing import Any
 
+import numpy as np
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
 OUT_DIR = os.path.normpath(os.path.join(ROOT, "public", "voices"))
@@ -25,6 +27,7 @@ def load_config() -> dict[str, Any]:
     """读取 voice_config.json；缺失字段用内置默认值。"""
     defaults: dict[str, Any] = {
         "synthesis": {"cfg_value": 2.0, "inference_timesteps": 16},
+        "sample_overrides": {},
         "persona": {},
         "class_persona": {
             "knight": "keigo",
@@ -112,6 +115,60 @@ def resolve_synthesis_params(
     return cfg, steps
 
 
+def resolve_sample_params(config: dict[str, Any], style: str) -> tuple[float, int]:
+    """Voice Design 锚点参数；允许按语体降低 cfg，减少怪叫/爆音。"""
+    overrides = config.get("sample_overrides", {})
+    style_override = overrides.get(style, {}) if isinstance(overrides, dict) else {}
+    return resolve_synthesis_params(
+        config,
+        style_override if isinstance(style_override, dict) else {},
+    )
+
+
+def postprocess_wav(
+    wav,
+    sample_rate: int,
+    *,
+    target_peak: float = 0.72,
+    max_gain: float = 4.0,
+    trim_threshold: float = 0.004,
+    pad_ms: int = 80,
+    fade_ms: int = 12,
+):
+    """
+    统一模型输出音频：转 mono、去 NaN、裁静音、淡入淡出、削峰到约 -2.8dB。
+    这不能修复模型发错音色，但能避免浏览器里刺耳爆音和点击噪声。
+    """
+    arr = np.asarray(wav, dtype=np.float32)
+    if arr.ndim > 1:
+        arr = arr.mean(axis=1)
+    arr = np.nan_to_num(arr, nan=0.0, posinf=0.0, neginf=0.0)
+    if arr.size == 0:
+        return arr
+
+    if np.max(np.abs(arr)) > 2.0:
+        arr = arr / 32768.0
+
+    active = np.flatnonzero(np.abs(arr) > trim_threshold)
+    if active.size:
+        pad = int(sample_rate * pad_ms / 1000)
+        start = max(0, int(active[0]) - pad)
+        end = min(arr.size, int(active[-1]) + pad)
+        arr = arr[start:end]
+
+    fade = min(int(sample_rate * fade_ms / 1000), arr.size // 2)
+    if fade > 1:
+        ramp = np.linspace(0.0, 1.0, fade, dtype=np.float32)
+        arr[:fade] *= ramp
+        arr[-fade:] *= ramp[::-1]
+
+    peak = float(np.max(np.abs(arr))) if arr.size else 0.0
+    if peak > 0:
+        arr = arr * min(max_gain, target_peak / peak)
+
+    return np.clip(arr, -0.98, 0.98)
+
+
 def get_skill_override(
     config: dict[str, Any],
     class_id: str,
@@ -159,7 +216,7 @@ def voice_design_text(persona: str, line: str) -> str:
 
 def synthesize_sample(model, config: dict[str, Any], style: str, speak_text: str):
     persona = persona_for_style(config, style)
-    cfg, steps = resolve_synthesis_params(config)
+    cfg, steps = resolve_sample_params(config, style)
     return model.generate(
         text=voice_design_text(persona, speak_text),
         cfg_value=cfg,

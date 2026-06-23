@@ -3,6 +3,12 @@
     "cfg_value": 2.5,
     "inference_timesteps": 20
   },
+  "sample_overrides": {
+    "tameguchi": {
+      "cfg_value": 2.0,
+      "inference_timesteps": 18
+    }
+  },
   "skill_mode": "clone",
   "skill_clone": {
     "cfg_value": 2.0,
@@ -11,7 +17,7 @@
   "persona": {
     "keigo": "(A passionate young knight, bold and fiery male voice, firm heroic delivery with clear diction, confident but not shouting, intense dramatic Japanese anime style)",
     "chuuni": "(A theatrical dark sorcerer, intense chuunibyou young male voice, brooding and grandiose, clear dramatic incantation, never shouting, dramatic Japanese anime style)",
-    "tameguchi": "(A cheeky confident teenage rogue, playful cool male voice, smirking and lively, casual but clear delivery, dramatic Japanese anime style)",
+    "tameguchi": "(A confident young male rogue voice, casual Japanese delivery, clear diction, relaxed and cool, natural human speech, no laughter, no screaming, no growling, no sound effects, not theatrical)",
     "bushi": "(A stern middle-aged samurai, deep resolute male voice, solemn bushido tone, measured and dignified, dramatic Japanese anime style)"
   },
   "class_persona": {
@@ -67,7 +73,8 @@
       "label": "Voice Design·盗贼锚点",
       "mode": "voice_design",
       "style": "tameguchi",
-      "cfg_value": 2.4,
+      "persona": "(A confident young male rogue voice, casual Japanese delivery, clear diction, relaxed and cool, natural human speech, no laughter, no screaming, no growling, no sound effects, not theatrical)",
+      "cfg_value": 2.0,
       "inference_timesteps": 18
     },
     "bushi-vd-default": {

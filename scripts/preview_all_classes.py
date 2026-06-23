@@ -30,6 +30,7 @@ from voice_lib import (
     load_class_skills_from_ts,
     load_config,
     load_samples_from_classes_ts,
+    postprocess_wav,
     synthesize_sample,
     synthesize_skill_clone,
 )
@@ -80,7 +81,7 @@ def main() -> None:
 
         print(f"\n[{class_id}] 锚点 VoiceDesign ({style}): {anchor_text}", flush=True)
         try:
-            wav = synthesize_sample(model, config, style, anchor_text)
+            wav = postprocess_wav(synthesize_sample(model, config, style, anchor_text), sample_rate)
             sf.write(anchor_path, wav, sample_rate)
         except Exception as e:
             print(f"  ! 锚点失败: {e}", file=sys.stderr, flush=True)
@@ -102,13 +103,16 @@ def main() -> None:
             out_path = os.path.join(class_dir, out_name)
             print(f"  [{class_id}] 克隆 {skill_id}: {incantation}", flush=True)
             try:
-                wav = synthesize_skill_clone(
-                    model,
-                    config,
-                    style,
-                    incantation,
-                    samples,
-                    ref_path=anchor_path,
+                wav = postprocess_wav(
+                    synthesize_skill_clone(
+                        model,
+                        config,
+                        style,
+                        incantation,
+                        samples,
+                        ref_path=anchor_path,
+                    ),
+                    sample_rate,
                 )
                 sf.write(out_path, wav, sample_rate)
                 class_entry["skills"].append(

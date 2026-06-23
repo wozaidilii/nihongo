@@ -27,7 +27,7 @@ export const SPEECH_STYLES: Record<SpeechStyleId, SpeechStyle> = {
     nameZh: "随便·口语体",
     description: "吊儿郎当的朋友口吻，句尾爱用「だぜ・じゃん」，盗贼的潇洒。",
     signature: "〜だぜ／〜じゃん",
-    sample: "へへっ、こんなの楽勝だぜ！",
+    sample: "こんなの楽勝だぜ。さっさと行こうぜ！",
   },
   bushi: {
     id: "bushi",

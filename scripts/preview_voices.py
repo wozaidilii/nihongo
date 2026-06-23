@@ -33,6 +33,7 @@ from voice_lib import (
     load_class_skills_from_ts,
     load_config,
     load_samples_from_classes_ts,
+    postprocess_wav,
     synthesize_with_variant,
 )
 
@@ -178,7 +179,10 @@ def main() -> None:
         label = variant.get("label", vid)
         print(f"[{i}/{len(jobs)}] {skill_id} / {vid}: {incantation}", flush=True)
         try:
-            wav = synthesize_with_variant(model, config, variant, style, incantation, samples)
+            wav = postprocess_wav(
+                synthesize_with_variant(model, config, variant, style, incantation, samples),
+                sample_rate,
+            )
             out_path = os.path.join(PREVIEW_DIR, filename)
             sf.write(out_path, wav, sample_rate)
             rows.append(

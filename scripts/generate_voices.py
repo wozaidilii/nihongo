@@ -31,6 +31,7 @@ from voice_lib import (
     load_config,
     load_manifest,
     load_samples_from_classes_ts,
+    postprocess_wav,
     save_manifest,
     skill_filename,
     skill_key,
@@ -65,8 +66,18 @@ def build_jobs(
     jobs: list[tuple[str, str, str, str, str, str | None, str | None]] = []
     manifest = load_manifest()
 
+    sample_class_styles: set[str] | None = None
+    if class_filter:
+        sample_class_styles = {
+            class_persona[class_id]
+            for class_id in class_filter
+            if class_id in class_persona
+        }
+
     if not skills_only:
         for style, text in load_samples_from_classes_ts().items():
+            if sample_class_styles is not None and style not in sample_class_styles:
+                continue
             jobs.append((f"sample_{style}", f"sample_{style}.wav", style, text, "sample", None, None))
 
     if samples_only:
@@ -173,6 +184,7 @@ def main() -> None:
                     speak_text,
                     samples,
                 )
+            wav = postprocess_wav(wav, sample_rate)
             out_path = os.path.join(OUT_DIR, filename)
             sf.write(out_path, wav, sample_rate)
             manifest[key] = f"/voices/{filename}"

@@ -30,7 +30,11 @@
 
 ## 标题页魔王城
 
-横幅：`public/sprites/title/demon-castle.png`（由 LPC 城堡贴图拼合生成）
+当前首页背景：`public/sprites/title/dark-gothic-castle.png`
+
+来源：["Dark Gothic Castle" + Entrance Castle Sprite | Pixel Art Side Scroller Background](https://pixel-1992.itch.io/free-pixel-art-background-dark-gothic-caslte-and-entrance-sprite)（PIXEL_1992，来源页标注 Free for commercial use / not for resale；AI Assisted Graphics）
+
+旧横幅：`public/sprites/title/demon-castle.png`（由 LPC 城堡贴图拼合生成）
 
 来源：[Another LPC style castle](https://opengameart.org/content/another-lpc-style-castle)（theidiotmachine，CC-BY-SA 3.0）
 

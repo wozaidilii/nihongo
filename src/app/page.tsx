@@ -8,7 +8,7 @@ import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { useGameReady } from "~/hooks/useGameReady";
 import { useLocale } from "~/hooks/useLocale";
 import { hasAnyOccupiedSlot } from "~/store/game";
-import { formatMessage, messages, t } from "~/i18n/messages";
+import { messages, t } from "~/i18n/messages";
 
 export default function TitlePage() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function TitlePage() {
     <PageShell centered className="gap-6 sm:gap-8">
       <TitleCover locale={locale} />
 
-      <PixelPanel tone="dialog" className="relative z-10 w-full max-w-md">
+      <PixelPanel tone="dialog" className="relative z-10 w-full max-w-sm">
         <div className="flex flex-col gap-3">
           <PixelButton
             variant="gold"

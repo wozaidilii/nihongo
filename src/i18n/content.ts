@@ -1,4 +1,4 @@
-import type { HeroClass, HeroClassId, Skill, SkillTreeNode, SpeechStyle, SpeechStyleId, Stage } from "~/types";
+import type { HeroClass, HeroClassId, Skill, SkillTreeNode, SpeechStyle, SpeechStyleId, Stage, Element } from "~/types";
 import type { CastMatchPath } from "~/lib/match";
 import type { Locale } from "./types";
 import { t } from "./messages";
@@ -67,20 +67,32 @@ const STAGE_TITLE: Record<string, L> = {
 
 const STAGE_INTRO: Record<string, L> = {
   "forest-1": {
-    zh: "迷雾森林的深处，一只史莱姆魔人挡住了去路。念出你的咒文，让它见识勇者之力！",
-    ja: "霧の森の奥深く、スライム魔人が進路を阻む。呪文を唱え、勇者の力を見せつけよう！",
-    en: "Deep in the misty woods, a slime fiend blocks your path. Chant your spell and show your hero's might!",
+    zh: "迷雾森林深处魔物横行。连战三场，在 Boss 战前摸清属性弱点，用克制咒文一击必杀！",
+    ja: "霧の森の奥で魔物がうろつく。三連戦、Boss 前に弱点を見極め、克制呪文で倒せ！",
+    en: "Monsters lurk in the misty woods. Three battles — learn their weaknesses before the Boss and finish them with super-effective chants!",
   },
   "cave-1": {
-    zh: "幽暗洞窟的最深处，影之巨龙苏醒了。用最强的咒文，终结这场战斗吧！",
-    ja: "暗い洞窟の最奥で、影のドラゴンが目を覚ました。最強の呪文で戦いを終わらせよう！",
-    en: "In the deepest dark cavern, the shadow dragon awakens. End the battle with your strongest chant!",
+    zh: "幽暗洞窟中潜伏着炎与影的魔物。突破前两战，用光与雷的咒文终结影龙！",
+    ja: "暗い洞窟に炎と闇の魔物。二戦を突破し、光と雷の呪文で影龍を終わらせろ！",
+    en: "Fire and shadow lurk in the dark cavern. Survive two fights, then end the shadow dragon with light and thunder!",
   },
 };
 
-const ENEMY_NAME: Record<string, L> = {
-  "forest-1": { zh: "史莱姆魔人", ja: "スライム魔人", en: "Slime Fiend" },
-  "cave-1": { zh: "影之龙", ja: "影のドラゴン", en: "Shadow Dragon" },
+const ENCOUNTER_NAME: Record<string, L> = {
+  "forest-1-e1": { zh: "史莱姆", ja: "スライム", en: "Slime" },
+  "forest-1-e2": { zh: "森林亡灵", ja: "森の亡霊", en: "Forest Wraith" },
+  "forest-1-boss": { zh: "史莱姆魔人", ja: "スライム魔人", en: "Slime Fiend" },
+  "cave-1-e1": { zh: "蝙蝠魔", ja: "コウモリ魔", en: "Bat Fiend" },
+  "cave-1-e2": { zh: "炎之魔像", ja: "炎のゴーレム", en: "Fire Golem" },
+  "cave-1-boss": { zh: "影之龙", ja: "影のドラゴン", en: "Shadow Dragon" },
+};
+
+const ELEMENT_LABEL: Record<Element, L> = {
+  fire: { zh: "火", ja: "炎", en: "Fire" },
+  holy: { zh: "光", ja: "光", en: "Light" },
+  lightning: { zh: "雷", ja: "雷", en: "Thunder" },
+  shadow: { zh: "闇", ja: "闇", en: "Dark" },
+  neutral: { zh: "无属性", ja: "無属性", en: "Neutral" },
 };
 
 const VOCAB_MEANING: Record<string, L> = {
@@ -208,8 +220,29 @@ export function getStageIntro(stage: Stage, locale: Locale): string {
   return pick(STAGE_INTRO, stage.id, stage.intro, locale);
 }
 
+export function getEncounterName(
+  encounterId: string,
+  fallbackName: string,
+  locale: Locale,
+): string {
+  return pick(ENCOUNTER_NAME, encounterId, fallbackName, locale);
+}
+
+/** 地图节点用 Boss 名 */
+export function getBossName(stage: Stage, locale: Locale): string {
+  const boss = stage.encounters[stage.encounters.length - 1];
+  if (!boss) return "";
+  return getEncounterName(boss.id, boss.enemy.name, locale);
+}
+
+/** @deprecated 使用 getBossName */
 export function getEnemyName(stage: Stage, locale: Locale): string {
-  return pick(ENEMY_NAME, stage.id, stage.enemy.name, locale);
+  return getBossName(stage, locale);
+}
+
+export function getElementLabel(element: Element, locale: Locale): string {
+  const entry = ELEMENT_LABEL[element];
+  return entry ? t(entry, locale) : element;
 }
 
 export function getVocabMeaning(vocabId: string, fallbackZh: string, locale: Locale): string {

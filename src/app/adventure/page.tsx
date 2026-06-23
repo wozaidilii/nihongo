@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { STAGES_ORDERED, isStageUnlocked } from "~/data/stages";
 import { getHeroClass, getStyleForClass } from "~/data/classes";
 import { getChosenBranch, getAvailableSkillPicks, SKILL_TREES } from "~/data/skillTree";
-import { SKILL_TREE_ICON } from "~/data/skillIcons";
+import { getBattleSkills } from "~/data/skills";
+import { SKILL_TREE_ICON, iconKeyForSkill } from "~/data/skillIcons";
 import { MapNode } from "~/components/game/MapNode";
 import { PageShell } from "~/components/game/PageShell";
 import { SkillTreeModal } from "~/components/game/SkillTreeModal";
+import { SkillUnlockModal } from "~/components/game/SkillUnlockModal";
 import { SkillTreeView } from "~/components/game/SkillTreeView";
 import { SkillIcon } from "~/components/pixel/SkillIcon";
 import { PixelButton } from "~/components/pixel/PixelButton";
@@ -20,6 +22,7 @@ import { useGameStore } from "~/store/game";
 import {
   getSkillTreeNodeDesc,
   getSkillTreeNodeName,
+  getSkillDisplayName,
   getSpeechStyleName,
   heroName,
   formatMessage,
@@ -36,10 +39,13 @@ export default function AdventurePage() {
   const exp = useGameStore((s) => s.exp);
   const clearedStageIds = useGameStore((s) => s.clearedStageIds);
   const skillTreeUnlocked = useGameStore((s) => s.skillTreeUnlocked);
+  const unlockedSkillIds = useGameStore((s) => s.unlockedSkillIds);
   const unlockSkillNode = useGameStore((s) => s.unlockSkillNode);
   const hasPendingSkillPick = useGameStore((s) => s.hasPendingSkillPick);
+  const hasPendingBattleSkillUnlock = useGameStore((s) => s.hasPendingBattleSkillUnlock);
 
   const [showSkillTree, setShowSkillTree] = useState(false);
+  const [showSkillUnlock, setShowSkillUnlock] = useState(false);
 
   const hero = getHeroClass(classId);
   const style = getStyleForClass(classId);
@@ -48,6 +54,12 @@ export default function AdventurePage() {
   useEffect(() => {
     if (ready && !classId) router.replace("/select");
   }, [ready, classId, router]);
+
+  useEffect(() => {
+    if (ready && hasPendingBattleSkillUnlock()) {
+      setShowSkillUnlock(true);
+    }
+  }, [ready, level, unlockedSkillIds, hasPendingBattleSkillUnlock]);
 
   useEffect(() => {
     if (ready && hasPendingSkillPick()) {
@@ -66,10 +78,19 @@ export default function AdventurePage() {
   const unlockedNodes = (SKILL_TREES[classId] ?? []).filter((n) =>
     skillTreeUnlocked.includes(n.id),
   );
+  const battleSkills = getBattleSkills(classId, unlockedSkillIds, skillTreeUnlocked);
   const heroLabel = heroName(hero.id, locale);
 
   return (
     <PageShell>
+      {showSkillUnlock && (
+        <SkillUnlockModal
+          classId={classId}
+          locale={locale}
+          onClose={() => setShowSkillUnlock(false)}
+        />
+      )}
+
       {showSkillTree && (
         <SkillTreeModal
           classId={classId}
@@ -117,6 +138,15 @@ export default function AdventurePage() {
             </p>
           )}
         </div>
+        {hasPendingBattleSkillUnlock() && (
+          <PixelButton
+            variant="gold"
+            className="w-full shrink-0 sm:ml-auto sm:w-auto"
+            onClick={() => setShowSkillUnlock(true)}
+          >
+            {t(messages.adventure.unlockSpell, locale)}
+          </PixelButton>
+        )}
         {hasPendingSkillPick() && (
           <PixelButton
             variant="gold"
@@ -127,6 +157,28 @@ export default function AdventurePage() {
           </PixelButton>
         )}
       </PixelPanel>
+
+      {battleSkills.length > 0 && (
+        <PixelPanel>
+          <p className="font-pixel text-[10px] text-rpg-5">
+            {t(messages.adventure.unlockedSpells, locale)}
+          </p>
+          <ul className="mt-2 flex flex-wrap gap-3">
+            {battleSkills.map((skill) => (
+              <li key={skill.id} className="flex items-center gap-2">
+                <SkillIcon
+                  iconKey={iconKeyForSkill(skill.fxKey)}
+                  size={28}
+                  title={getSkillDisplayName(skill, locale)}
+                />
+                <span className="font-jp text-xs text-rpg-12">
+                  {getSkillDisplayName(skill, locale)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </PixelPanel>
+      )}
 
       {unlockedNodes.length > 0 && (
         <PixelPanel>

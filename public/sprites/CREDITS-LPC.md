@@ -18,7 +18,13 @@
 | 敌人 | 来源 | 许可 |
 |------|------|------|
 | 史莱姆 | [Animated Slime](https://opengameart.org/content/animated-slime) by Calciumtrice | CC-BY 3.0 |
+| 史莱姆魔人 (Boss) | 同上，紫色着色 | CC-BY 3.0 |
+| 森林亡灵 | [LPC Monsters](https://opengameart.org/content/lpc-monsters)（bluecarrot16 等） | CC-BY-SA 3.0 |
+| 蝙蝠魔 | 同上 `bat.png` | CC-BY-SA 3.0 |
+| 炎魔像 | [Golem walk/attack/die](https://opengameart.org/) by Stephen "Redshrike" Challener | OGA-BY 3.0 |
 | 影龙 | [RPG Enemies: 11 Dragons](https://opengameart.org/content/rpg-enemies-11-dragons)（Redshrike 等）+ [Dragon idle animation](https://opengameart.org/content/dragon-idle-animation)（Scribe） | CC-BY-SA 3.0 / GPL 3.0 |
+
+敌人精灵生成：`scripts/build_lpc_enemies.py`（由 `build_lpc_sprites.py` 调用）
 
 影龙署名：Stephen "Redshrike" Challener、Surt（原设）、Daniel Stephens / Scribe（呼吸动画）
 
@@ -66,10 +72,10 @@ python3 scripts/build_skill_icons.py
 ## 重新生成精灵
 
 ```bash
-# 勇者 + 史莱姆
+# 勇者 + 全部敌人（史莱姆/亡灵/蝙蝠/魔像/Boss 史莱姆）
 python3 scripts/build_lpc_sprites.py
 
-# 影龙 + 技能特效
+# 影龙 + 技能特效（需先于或配合 build_lpc_sprites 运行）
 python3 scripts/build_fx_and_dragon.py
 
 # 技能图标（Kyrise）

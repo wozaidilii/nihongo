@@ -1,7 +1,13 @@
 "use client";
 
 import { create } from "zustand";
-import type { HeroClassId, PlayerState } from "~/types";
+import type { HeroClassId, PlayerState, StageClearResult } from "~/types";
+import {
+  getPendingBattleSkillUnlockCount,
+  getNextUnlockableBattleSkill,
+  getStarterSkillId,
+  getUnlockableBattleSkills,
+} from "~/data/skills";
 import {
   createDefaultPlayerState,
   loadPlayerState,
@@ -21,12 +27,16 @@ interface GameStore extends PlayerState {
   hydrate: () => void;
   /** 选择职业 */
   selectClass: (id: HeroClassId) => void;
-  /** 通关结算：记录通关、加经验、记录所学词 */
-  completeStage: (stageId: string, vocabIds: string[]) => void;
+  /** 通关结算：记录通关、加经验 */
+  completeStage: (stageId: string) => StageClearResult;
+  /** 解锁战斗咒文（消耗技能点） */
+  unlockBattleSkill: (skillId: string) => void;
   /** 解锁技能树节点 */
   unlockSkillNode: (nodeId: string) => void;
-  /** 是否还有待选技能点 */
+  /** 是否还有待选技能树分支 */
   hasPendingSkillPick: () => boolean;
+  /** 是否还有待解锁的战斗咒文 */
+  hasPendingBattleSkillUnlock: () => boolean;
   /** 当前可选择的技能树节点 id 列表 */
   getSkillPickOptions: () => string[];
   /** 重置全部进度 */
@@ -43,6 +53,7 @@ function persist(state: GameStore): PlayerState {
     clearedStageIds: state.clearedStageIds,
     learnedVocabIds: state.learnedVocabIds,
     skillTreeUnlocked: state.skillTreeUnlocked,
+    unlockedSkillIds: state.unlockedSkillIds,
   };
   savePlayerState(snapshot);
   return snapshot;
@@ -59,30 +70,62 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   selectClass: (id) => {
-    set({ classId: id });
+    const starter = getStarterSkillId(id);
+    set({
+      classId: id,
+      unlockedSkillIds: starter ? [starter] : [],
+    });
     persist(get());
   },
 
-  completeStage: (stageId, vocabIds) => {
+  completeStage: (stageId) => {
     const state = get();
-    const cleared = state.clearedStageIds.includes(stageId)
-      ? state.clearedStageIds
-      : [...state.clearedStageIds, stageId];
-
-    const learned = Array.from(
-      new Set([...state.learnedVocabIds, ...(vocabIds ?? [])]),
-    );
-
+    const prevLevel = state.level;
+    const prevExp = state.exp;
     const firstClear = !state.clearedStageIds.includes(stageId);
-    const exp = state.exp + (firstClear ? EXP_PER_STAGE : 0);
-    const level = Math.max(1, Math.floor(exp / EXP_PER_LEVEL) + 1);
+
+    const cleared = firstClear
+      ? [...state.clearedStageIds, stageId]
+      : state.clearedStageIds;
+
+    const expGained = firstClear ? EXP_PER_STAGE : 0;
+    const exp = prevExp + expGained;
+    const newLevel = Math.max(1, Math.floor(exp / EXP_PER_LEVEL) + 1);
 
     set({
       clearedStageIds: cleared,
-      learnedVocabIds: learned,
       exp,
-      level,
+      level: newLevel,
     });
+    persist(get());
+
+    return {
+      firstClear,
+      expGained,
+      prevLevel,
+      newLevel,
+      leveledUp: newLevel > prevLevel,
+    };
+  },
+
+  unlockBattleSkill: (skillId) => {
+    const state = get();
+    if (!skillId || !state.classId || state.unlockedSkillIds.includes(skillId)) return;
+
+    const pending = getPendingBattleSkillUnlockCount(
+      state.level,
+      state.unlockedSkillIds,
+    );
+    if (pending <= 0) return;
+
+    const unlockable = getNextUnlockableBattleSkill(
+      state.classId,
+      state.clearedStageIds,
+      state.unlockedSkillIds,
+    );
+    if (!unlockable || unlockable.id !== skillId) return;
+
+    set({ unlockedSkillIds: [...state.unlockedSkillIds, skillId] });
     persist(get());
   },
 
@@ -101,6 +144,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
       state.level,
       state.skillTreeUnlocked,
     ).length > 0;
+  },
+
+  hasPendingBattleSkillUnlock: () => {
+    const state = get();
+    if (!state.classId) return false;
+    const pending = getPendingBattleSkillUnlockCount(
+      state.level,
+      state.unlockedSkillIds,
+    );
+    if (pending <= 0) return false;
+    return (
+      getUnlockableBattleSkills(
+        state.classId,
+        state.clearedStageIds,
+        state.unlockedSkillIds,
+      ).length > 0
+    );
   },
 
   getSkillPickOptions: () => {

@@ -94,6 +94,9 @@ export type SkillFxKey =
   | "thrust"
   | "dagger";
 
+/** 战斗属性（与关卡词汇、fx 对齐） */
+export type Element = "fire" | "holy" | "lightning" | "shadow" | "neutral";
+
 /**
  * 技能：每个职业拥有独立咒文与特效。
  * incantation / reading 为该职业专属，不再按语体分叉。
@@ -113,6 +116,8 @@ export interface Skill {
   baseDamage: number;
   zh: string;
   fxKey: SkillFxKey;
+  /** 技能属性；省略时由 fxKey 推断 */
+  element?: Element;
 }
 
 /** 降级答题(不支持语音/拒权时使用) */
@@ -137,6 +142,22 @@ export interface Enemy {
   hp: number;
   /** 怪兽攻击力（每回合对勇者造成的伤害） */
   attack: number;
+  /** 主属性 */
+  element: Element;
+  /** 弱点属性（克制，×1.5） */
+  weakness: Element[];
+  /** 抵抗属性（×0.5） */
+  resist?: Element[];
+}
+
+/** 单场遭遇战类型 */
+export type EncounterKind = "normal" | "boss";
+
+/** 关卡内一场战斗 */
+export interface StageEncounter {
+  id: string;
+  kind: EncounterKind;
+  enemy: Enemy;
 }
 
 /** 关卡 */
@@ -147,7 +168,8 @@ export interface Stage {
   order: number;
   /** 场景描述(中二风) */
   intro: string;
-  enemy: Enemy;
+  /** 连战：2 场普通战 + 1 场 Boss */
+  encounters: StageEncounter[];
   /** 本关学习的词汇 */
   vocab: Vocab[];
 }
@@ -166,4 +188,15 @@ export interface PlayerState {
   learnedVocabIds: string[];
   /** 已解锁的技能树节点 id */
   skillTreeUnlocked: string[];
+  /** 已解锁的战斗咒文 id（按职业进度） */
+  unlockedSkillIds: string[];
+}
+
+/** 关卡通关结算快照（仅 UI 展示） */
+export interface StageClearResult {
+  firstClear: boolean;
+  expGained: number;
+  prevLevel: number;
+  newLevel: number;
+  leveledUp: boolean;
 }

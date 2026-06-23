@@ -1,3 +1,4 @@
+import { getStarterSkillIds } from "~/data/skills";
 import type { HeroClassId, PlayerState } from "~/types";
 
 /**
@@ -9,7 +10,7 @@ import type { HeroClassId, PlayerState } from "~/types";
 const STORAGE_KEY = "nihongo-hero-save";
 
 /** 当前存档版本，结构变更时 +1 并在 migrate 处理 */
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 /** 生成一份全新的默认存档 */
 export function createDefaultPlayerState(): PlayerState {
@@ -21,6 +22,7 @@ export function createDefaultPlayerState(): PlayerState {
     clearedStageIds: [],
     learnedVocabIds: [],
     skillTreeUnlocked: [],
+    unlockedSkillIds: [],
   };
 }
 
@@ -55,14 +57,24 @@ export function sanitizePlayerState(raw: unknown): PlayerState {
       ? (data.classId as HeroClassId)
       : null;
 
+  const level = Math.max(1, toNonNegInt(data.level, base.level));
+  const clearedStageIds = toStringArray(data.clearedStageIds);
+  let unlockedSkillIds = toStringArray(data.unlockedSkillIds);
+
+  // v2 → v3：按等级补全已解锁咒文（首咒文 Lv1 免费）
+  if (unlockedSkillIds.length === 0 && classId) {
+    unlockedSkillIds = getStarterSkillIds(classId, level, clearedStageIds);
+  }
+
   return {
     version: SAVE_VERSION,
     classId,
-    level: Math.max(1, toNonNegInt(data.level, base.level)),
+    level,
     exp: toNonNegInt(data.exp, base.exp),
-    clearedStageIds: toStringArray(data.clearedStageIds),
+    clearedStageIds,
     learnedVocabIds: toStringArray(data.learnedVocabIds),
     skillTreeUnlocked: toStringArray(data.skillTreeUnlocked),
+    unlockedSkillIds,
   };
 }
 

@@ -1,5 +1,9 @@
 import type { HeroClassId, Skill } from "~/types";
 import { getAggregatedModifiers } from "~/data/skillTree";
+import { elementFromFx } from "~/lib/element";
+
+/** 关卡顺序：决定咒文解锁进度 */
+const STAGE_ORDER = ["forest-1", "cave-1"] as const;
 
 /**
  * 各职业专属技能：同一关卡不同职业咒文、特效、伤害均不同。
@@ -240,23 +244,96 @@ export const CLASS_SKILLS: Record<HeroClassId, Record<string, Skill[]>> = {
   },
 };
 
+/** 补全技能属性 */
+function normalizeSkill(skill: Skill): Skill {
+  return {
+    ...skill,
+    element: skill.element ?? elementFromFx(skill.fxKey),
+  };
+}
+
 /** 取某职业在某关卡的技能列表；缺省返回空数组 */
 export function getSkillsForStage(
   stageId: string | null | undefined,
   classId: HeroClassId | null | undefined,
 ): Skill[] {
   if (!stageId || !classId) return [];
-  return CLASS_SKILLS[classId]?.[stageId] ?? [];
+  return (CLASS_SKILLS[classId]?.[stageId] ?? []).map(normalizeSkill);
 }
 
-/** 应用技能树加成后的战斗技能列表 */
+/** 职业全部咒文（按关卡顺序） */
+export function getClassSkillProgression(classId: HeroClassId): Skill[] {
+  return STAGE_ORDER.flatMap((stageId) => getSkillsForStage(stageId, classId));
+}
+
+/** 首个免费咒文 id */
+export function getStarterSkillId(classId: HeroClassId): string | undefined {
+  return getClassSkillProgression(classId)[0]?.id;
+}
+
+/**
+ * 迁移/初始化：按等级补全已解锁咒文（Lv1 仅首咒文，每升 1 级多 1 个技能点）。
+ * 洞窟咒文需先通关森林关。
+ */
+export function getStarterSkillIds(
+  classId: HeroClassId,
+  level: number,
+  clearedStageIds: string[] = [],
+): string[] {
+  const progression = getClassSkillProgression(classId);
+  const forestCleared = clearedStageIds.includes("forest-1");
+  const allowed = progression.filter(
+    (s) => s.stageId !== "cave-1" || forestCleared,
+  );
+  const count = Math.min(Math.max(1, level), allowed.length);
+  return allowed.slice(0, count).map((s) => s.id);
+}
+
+/** 尚未解锁、且满足关卡条件的下一批咒文 */
+export function getUnlockableBattleSkills(
+  classId: HeroClassId,
+  clearedStageIds: string[],
+  unlockedSkillIds: string[] = [],
+): Skill[] {
+  const unlocked = new Set(unlockedSkillIds);
+  const forestCleared = clearedStageIds.includes("forest-1");
+  return getClassSkillProgression(classId).filter((skill) => {
+    if (unlocked.has(skill.id)) return false;
+    if (skill.stageId === "cave-1" && !forestCleared) return false;
+    return true;
+  });
+}
+
+/** 下一项可解锁咒文（按进度顺序） */
+export function getNextUnlockableBattleSkill(
+  classId: HeroClassId,
+  clearedStageIds: string[],
+  unlockedSkillIds: string[] = [],
+): Skill | undefined {
+  return getUnlockableBattleSkills(classId, clearedStageIds, unlockedSkillIds)[0];
+}
+
+/** 待消耗的技能点数量（Lv1 自带 1 咒文不计入） */
+export function getPendingBattleSkillUnlockCount(
+  level: number,
+  unlockedSkillIds: string[] = [],
+): number {
+  const earned = Math.max(0, level - 1);
+  const spent = Math.max(0, unlockedSkillIds.length - 1);
+  return Math.max(0, earned - spent);
+}
+
+/** 应用技能树加成后的战斗技能列表（仅已解锁咒文） */
 export function getBattleSkills(
-  stageId: string | null | undefined,
   classId: HeroClassId | null | undefined,
+  unlockedSkillIds: string[] = [],
   unlockedNodes: string[] = [],
 ): Skill[] {
-  const base = getSkillsForStage(stageId, classId);
-  if (!classId || base.length === 0) return base;
+  if (!classId) return [];
+
+  const unlocked = new Set(unlockedSkillIds);
+  const base = getClassSkillProgression(classId).filter((s) => unlocked.has(s.id));
+  if (base.length === 0) return base;
 
   const mods = getAggregatedModifiers(classId, unlockedNodes);
   const globalMul = mods.damageMul ?? 1;

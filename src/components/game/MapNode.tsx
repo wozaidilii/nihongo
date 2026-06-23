@@ -5,7 +5,8 @@ import type { Locale } from "~/i18n/types";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { CharacterSprite } from "~/components/pixel/CharacterSprite";
 import { PixelSprite } from "~/components/pixel/PixelSprite";
-import { getEnemyName, getStageTitle, formatMessage, messages, t } from "~/i18n";
+import { getBossName, getStageTitle, formatMessage, messages, t } from "~/i18n";
+import { getBossEncounter } from "~/data/stages";
 
 interface MapNodeProps {
   stage: Stage;
@@ -18,7 +19,9 @@ interface MapNodeProps {
 /** 地图上的一个关卡节点 */
 export function MapNode({ stage, locale, unlocked, cleared, onEnter }: MapNodeProps) {
   const disabled = !unlocked;
-  const enemyName = getEnemyName(stage, locale);
+  const boss = getBossEncounter(stage);
+  const bossEnemy = boss?.enemy;
+  const enemyName = getBossName(stage, locale);
   const stageTitle = getStageTitle(stage, locale);
 
   return (
@@ -33,11 +36,11 @@ export function MapNode({ stage, locale, unlocked, cleared, onEnter }: MapNodePr
         className={disabled ? "opacity-60" : "transition-transform hover:-translate-y-1"}
       >
         <div className="flex items-center gap-4">
-          {unlocked ? (
+          {unlocked && bossEnemy ? (
             <CharacterSprite
               kind="enemy"
-              id={stage.enemy.spriteKey}
-              fallbackGlyph={stage.enemy.sprite}
+              id={bossEnemy.spriteKey}
+              fallbackGlyph={bossEnemy.sprite}
               state="idle"
               bob={!cleared}
               label={enemyName}

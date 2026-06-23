@@ -149,10 +149,20 @@ export const messages = {
       ja: "スキル+",
       en: "Skill+",
     } satisfies L,
+    unlockSpell: {
+      zh: "解锁咒文",
+      ja: "呪文解放",
+      en: "Unlock Spell",
+    } satisfies L,
+    unlockedSpells: {
+      zh: "已解锁咒文",
+      ja: "解放済み呪文",
+      en: "Unlocked Spells",
+    } satisfies L,
     unlockedSkills: {
-      zh: "已解锁技能",
-      ja: "解放済みスキル",
-      en: "Unlocked Skills",
+      zh: "被动强化",
+      ja: "パッシブ強化",
+      en: "Passive Upgrades",
     } satisfies L,
     mapTitle: {
       zh: "冒险地图",
@@ -172,9 +182,9 @@ export const messages = {
       en: "✔ Cleared",
     } satisfies L,
     enemy: {
-      zh: "敌：{name}",
-      ja: "敵：{name}",
-      en: "Enemy: {name}",
+      zh: "Boss：{name} · 3 战",
+      ja: "Boss：{name} · 3 戦",
+      en: "Boss: {name} · 3 battles",
     } satisfies L,
     unlockHint: {
       zh: "通关上一关后解锁",
@@ -189,9 +199,9 @@ export const messages = {
       en: "Narrator",
     } satisfies L,
     learnVocab: {
-      zh: "▶ 学习咒文词汇",
-      ja: "▶ 呪文語彙を学ぶ",
-      en: "▶ Learn Spell Vocabulary",
+      zh: "▶ 开始战斗",
+      ja: "▶ 戦闘開始",
+      en: "▶ Start Battle",
     } satisfies L,
     vocabTitle: {
       zh: "本关词汇",
@@ -213,20 +223,135 @@ export const messages = {
       ja: "⚔️ 戦闘開始！",
       en: "⚔️ Start Battle!",
     } satisfies L,
+    elementGuideTitle: {
+      zh: "属性克制（弱点列表）",
+      ja: "属性相性（弱点リスト）",
+      en: "Type Matchups (weakness list)",
+    } satisfies L,
+    elementGuideHint: {
+      zh: "每场敌人头顶会显示属性与弱点。选用弱点属性的咒文 ×1.5 伤害，被抵抗的属性 ×0.5。每关连战 3 场，最后为 Boss！",
+      ja: "敵の属性と弱点を確認しよう。弱点属性の呪文は1.5倍、耐性は0.5倍。各ステージ3戦、最後はBoss！",
+      en: "Check each foe's type and weaknesses. Weakness hits deal ×1.5; resisted hits deal ×0.5. Three battles per stage — the last is the Boss!",
+    } satisfies L,
+    encounterProgress: {
+      zh: "第 {current}/{total} 战",
+      ja: "第 {current}/{total} 戦",
+      en: "Battle {current}/{total}",
+    } satisfies L,
+    bossTag: {
+      zh: "BOSS",
+      ja: "BOSS",
+      en: "BOSS",
+    } satisfies L,
+    selectSkill: {
+      zh: "选择要咏唱的咒文",
+      ja: "詠唱する呪文を選ぶ",
+      en: "Choose a spell to chant",
+    } satisfies L,
+    selectSkillFirst: {
+      zh: "请先在上方选择技能",
+      ja: "上でスキルを選んで",
+      en: "Pick a skill above first",
+    } satisfies L,
+    elementLabel: {
+      zh: "属性",
+      ja: "属性",
+      en: "Type",
+    } satisfies L,
+    weaknessLabel: {
+      zh: "弱",
+      ja: "弱点",
+      en: "Weak",
+    } satisfies L,
+    resistLabel: {
+      zh: "抗",
+      ja: "耐性",
+      en: "Resist",
+    } satisfies L,
+    matchupSuper: {
+      zh: "★ 克制",
+      ja: "★ 効果抜群",
+      en: "★ Super effective",
+    } satisfies L,
+    matchupWeak: {
+      zh: "△ 被抵抗",
+      ja: "△ いまいち",
+      en: "△ Not very effective",
+    } satisfies L,
+    elementNoteSuper: {
+      zh: "（效果拔群！）",
+      ja: "（効果抜群！）",
+      en: " (Super effective!)",
+    } satisfies L,
+    elementNoteWeak: {
+      zh: "（收效甚微…）",
+      ja: "（いまいち…）",
+      en: " (Not very effective…)",
+    } satisfies L,
+    nextEncounter: {
+      zh: "下一只敌人出现了！",
+      ja: "次の敵が現れた！",
+      en: "Another foe appears!",
+    } satisfies L,
+    bossApproach: {
+      zh: "⚠️ Boss 战开始！",
+      ja: "⚠️ Boss 戦開始！",
+      en: "⚠️ Boss battle!",
+    } satisfies L,
     winSpeaker: {
       zh: "胜利！",
       ja: "勝利！",
       en: "Victory!",
     } satisfies L,
     winText: {
-      zh: "讨伐成功！{enemy} 被你的中二咒文击败了！本关词汇已收入图鉴。{skillHint}",
-      ja: "討伐成功！{enemy} を厨二呪文で倒した！語彙を図鑑に追加。{skillHint}",
-      en: "Victory! You defeated {enemy} with your chuuni chant! Vocabulary added to your codex. {skillHint}",
+      zh: "讨伐成功！{enemy} 被你的中二咒文击败了！",
+      ja: "討伐成功！{enemy} を厨二呪文で倒した！",
+      en: "Victory! You defeated {enemy} with your chuuni chant!",
     } satisfies L,
-    skillHint: {
-      zh: " 你升级了，回冒险地图可选择技能强化！",
-      ja: " レベルアップ！冒険マップでスキル強化を選べる！",
-      en: " You leveled up — return to the map to pick a skill upgrade!",
+    resultTitle: {
+      zh: "战斗结算",
+      ja: "戦闘結果",
+      en: "Battle Results",
+    } satisfies L,
+    resultExp: {
+      zh: "获得经验 +{exp}",
+      ja: "経験値 +{exp}",
+      en: "EXP gained +{exp}",
+    } satisfies L,
+    resultRepeat: {
+      zh: "重复通关，无额外经验",
+      ja: "再クリア — 追加経験なし",
+      en: "Repeat clear — no bonus EXP",
+    } satisfies L,
+    resultLevelUp: {
+      zh: "等级提升 Lv.{prev} → Lv.{next}！获得 1 技能点",
+      ja: "レベルアップ Lv.{prev} → Lv.{next}！スキルポイント +1",
+      en: "Level up Lv.{prev} → Lv.{next}! +1 skill point",
+    } satisfies L,
+    skillUnlockTitle: {
+      zh: "解锁新咒文",
+      ja: "新呪文を解放",
+      en: "Unlock New Spell",
+    } satisfies L,
+    skillUnlockHint: {
+      zh: "升级获得的技能点可解锁一条新咒文，请选择：",
+      ja: "レベルアップで得たポイントで呪文を1つ解放：",
+      en: "Spend your skill point to unlock one new spell:",
+    } satisfies L,
+    skillUnlockPick: {
+      zh: "解锁",
+      ja: "解放",
+      en: "Unlock",
+    } satisfies L,
+    skillUnlockRequired: {
+      zh: "请先解锁新咒文，再继续冒险",
+      ja: "新呪文を解放してから進もう",
+      en: "Unlock a new spell before continuing",
+    } satisfies L,
+    noSkillsUnlocked: {
+      zh: "尚未解锁任何咒文。请回冒险地图升级后再来！",
+      ja: "解放済みの呪文がありません。冒険マップでレベルアップしてから！",
+      en: "No spells unlocked yet. Level up on the adventure map first!",
     } satisfies L,
     allCleared: {
       zh: "🎉 你已通关全部关卡，真正的勇者！",

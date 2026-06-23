@@ -16,6 +16,8 @@ from typing import Iterable
 
 from PIL import Image
 
+from build_lpc_enemies import build_all_enemies
+
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 TMP = os.path.join(ROOT, "public", "sprites", "_tmp")
 LPC = os.path.join(TMP, "lpc_entry", "png")
@@ -198,55 +200,6 @@ HEROES: list[CharBuild] = [
 ]
 
 
-def build_slime() -> tuple[Image.Image, dict]:
-    """
-    Calciumtrice 史莱姆(32×32)。
-    贴图 80×320：2 列 × 10 行，取左上绿色史莱姆的 idle/attack/hurt 行。
-    """
-    path = os.path.join(TMP, "slime_calciumtrice.png")
-    sheet = Image.open(path).convert("RGBA")
-    fw = fh = 32
-
-    def row_frames(row: int, max_frames: int = 10) -> list[Image.Image]:
-        frames = []
-        for col in range(2):
-            x, y = col * fw, row * fh
-            frames.append(sheet.crop((x, y, x + fw, y + fh)))
-        return frames[:max_frames]
-
-    # 行 0~1: idle 循环；行 6~7: attack；行 8: hurt/death 首帧
-    anims_data = {
-        "idle": row_frames(0, 2),
-        "attack": row_frames(6, 2),
-        "hurt": row_frames(8, 1),
-        "death": row_frames(9, 1),
-    }
-    order = ["idle", "attack", "hurt", "death"]
-    max_w = max(len(anims_data[k]) for k in order) * fw
-    out = Image.new("RGBA", (max_w, len(order) * fh), (0, 0, 0, 0))
-    meta_anims = {}
-    for ri, key in enumerate(order):
-        frames = anims_data[key]
-        meta_anims[key] = {
-            "row": ri,
-            "frames": list(range(len(frames))),
-            "fps": {"idle": 3, "attack": 8, "hurt": 4, "death": 4}.get(key, 6),
-        }
-        for ci, fr in enumerate(frames):
-            out.paste(fr, (ci * fw, ri * fh))
-
-    meta = {
-        "sheet": "/sprites/enemies/slime.png",
-        "frameWidth": fw,
-        "frameHeight": fh,
-        "sheetWidth": max_w,
-        "sheetHeight": len(order) * fh,
-        "scale": 2,
-        "animations": meta_anims,
-    }
-    return out, meta
-
-
 def build_dragon() -> tuple[Image.Image, dict]:
     """影龙由 scripts/build_fx_and_dragon.py 从 LPC 素材生成。"""
     dragon_path = os.path.join(OUT_ENEMIES, "dragon.png")
@@ -271,11 +224,8 @@ def main() -> None:
         manifest["heroes"][cfg.id] = meta
         print(f"[hero] {cfg.id} -> {out_path} ({img.size[0]}x{img.size[1]})")
 
-    slime_img, slime_meta = build_slime()
-    slime_path = os.path.join(OUT_ENEMIES, "slime.png")
-    slime_img.save(slime_path)
-    manifest["enemies"]["slime"] = slime_meta
-    print(f"[enemy] slime -> {slime_path}")
+    # 全部 LPC 敌人（slime / ghost / bat / golem / slime_boss）
+    manifest["enemies"].update(build_all_enemies())
 
     dragon_img, dragon_meta = build_dragon()
     dragon_path = os.path.join(OUT_ENEMIES, "dragon.png")

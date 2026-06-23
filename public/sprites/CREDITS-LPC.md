@@ -20,6 +20,7 @@
 | 史莱姆 | [Animated Slime](https://opengameart.org/content/animated-slime) by Calciumtrice | CC-BY 3.0 |
 | 史莱姆魔人 (Boss) | 同上，紫色着色 | CC-BY 3.0 |
 | 森林亡灵 | [LPC Monsters](https://opengameart.org/content/lpc-monsters)（bluecarrot16 等） | CC-BY-SA 3.0 |
+| 平原魔蜂 / 毒蛇 / 蠕虫 / 魔眼 / 南瓜魔 / 食人花 | 同上 LPC Monsters 包 | CC-BY-SA 3.0 |
 | 蝙蝠魔 | 同上 `bat.png` | CC-BY-SA 3.0 |
 | 炎魔像 | [Golem walk/attack/die](https://opengameart.org/) by Stephen "Redshrike" Challener | OGA-BY 3.0 |
 | 影龙 | [RPG Enemies: 11 Dragons](https://opengameart.org/content/rpg-enemies-11-dragons)（Redshrike 等）+ [Dragon idle animation](https://opengameart.org/content/dragon-idle-animation)（Scribe） | CC-BY-SA 3.0 / GPL 3.0 |

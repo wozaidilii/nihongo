@@ -174,6 +174,58 @@ export const messages = {
       ja: "ステージを選んで討伐開始！",
       en: "Pick a stage and begin the hunt!",
     } satisfies L,
+    openCodex: {
+      zh: "📖 图鉴",
+      ja: "📖 図鑑",
+      en: "📖 Codex",
+    } satisfies L,
+  },
+  codex: {
+    title: {
+      zh: "冒险图鉴",
+      ja: "冒険図鑑",
+      en: "Adventure Codex",
+    } satisfies L,
+    subtitle: {
+      zh: "通关收集的词汇、咒文与魔物",
+      ja: "クリアで集めた語彙・呪文・魔物",
+      en: "Vocabulary, spells, and foes you've collected",
+    } satisfies L,
+    tabVocab: {
+      zh: "词汇",
+      ja: "語彙",
+      en: "Words",
+    } satisfies L,
+    tabSpells: {
+      zh: "咒文",
+      ja: "呪文",
+      en: "Spells",
+    } satisfies L,
+    tabEnemies: {
+      zh: "魔物",
+      ja: "魔物",
+      en: "Foes",
+    } satisfies L,
+    emptyVocab: {
+      zh: "尚未收集词汇。通关关卡后会自动收录！",
+      ja: "語彙はまだありません。ステージクリアで追加！",
+      en: "No words yet — clear stages to fill your codex!",
+    } satisfies L,
+    emptySpells: {
+      zh: "尚未解锁咒文。升级后在结算页解锁！",
+      ja: "呪文未解放。レベルアップ後に解放！",
+      en: "No spells unlocked yet — level up to learn new chants!",
+    } satisfies L,
+    emptyEnemies: {
+      zh: "尚未遭遇魔物。进入战斗后会自动记录！",
+      ja: "魔物未遭遇。戦闘で自動記録！",
+      en: "No foes recorded yet — encounter them in battle!",
+    } satisfies L,
+    backMap: {
+      zh: "返回地图",
+      ja: "マップへ戻る",
+      en: "Back to Map",
+    } satisfies L,
   },
   map: {
     cleared: {
@@ -489,6 +541,11 @@ export const messages = {
       zh: "……或念汉字咒文「{incantation}」……",
       ja: "……または漢字呪文「{incantation}」……",
       en: "…or chant kanji 「{incantation}」…",
+    } satisfies L,
+    interimHeard: {
+      zh: "识别中：{text}",
+      ja: "認識中：{text}",
+      en: "Hearing: {text}",
     } satisfies L,
     heard: {
       zh: "识别到：{text}",

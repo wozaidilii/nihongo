@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import type { HeroClassId, PlayerState, StageClearResult } from "~/types";
+import { getStage } from "~/data/stages";
 import {
   getPendingBattleSkillUnlockCount,
   getNextUnlockableBattleSkill,
@@ -31,6 +32,8 @@ interface GameStore extends PlayerState {
   completeStage: (stageId: string) => StageClearResult;
   /** 解锁战斗咒文（消耗技能点） */
   unlockBattleSkill: (skillId: string) => void;
+  /** 图鉴：记录遭遇战 */
+  discoverEncounter: (encounterId: string) => void;
   /** 解锁技能树节点 */
   unlockSkillNode: (nodeId: string) => void;
   /** 是否还有待选技能树分支 */
@@ -54,6 +57,7 @@ function persist(state: GameStore): PlayerState {
     learnedVocabIds: state.learnedVocabIds,
     skillTreeUnlocked: state.skillTreeUnlocked,
     unlockedSkillIds: state.unlockedSkillIds,
+    discoveredEncounterIds: state.discoveredEncounterIds,
   };
   savePlayerState(snapshot);
   return snapshot;
@@ -81,19 +85,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
   completeStage: (stageId) => {
     const state = get();
     const prevLevel = state.level;
-    const prevExp = state.exp;
     const firstClear = !state.clearedStageIds.includes(stageId);
 
     const cleared = firstClear
       ? [...state.clearedStageIds, stageId]
       : state.clearedStageIds;
 
+    const stage = getStage(stageId);
+    const vocabIds = stage?.vocab?.map((v) => v.id) ?? [];
+    const learned = Array.from(
+      new Set([...state.learnedVocabIds, ...vocabIds]),
+    );
+
     const expGained = firstClear ? EXP_PER_STAGE : 0;
-    const exp = prevExp + expGained;
+    const exp = state.exp + expGained;
     const newLevel = Math.max(1, Math.floor(exp / EXP_PER_LEVEL) + 1);
 
     set({
       clearedStageIds: cleared,
+      learnedVocabIds: learned,
       exp,
       level: newLevel,
     });
@@ -106,6 +116,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       newLevel,
       leveledUp: newLevel > prevLevel,
     };
+  },
+
+  discoverEncounter: (encounterId) => {
+    const state = get();
+    if (!encounterId || state.discoveredEncounterIds.includes(encounterId)) return;
+    set({
+      discoveredEncounterIds: [...state.discoveredEncounterIds, encounterId],
+    });
+    persist(get());
   },
 
   unlockBattleSkill: (skillId) => {

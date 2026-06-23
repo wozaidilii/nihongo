@@ -61,11 +61,19 @@ const STYLE_DESC: Record<SpeechStyleId, L> = {
 };
 
 const STAGE_TITLE: Record<string, L> = {
+  "plains-1": { zh: "风之平原", ja: "風の平原", en: "Windswept Plains" },
   "forest-1": { zh: "迷雾之森", ja: "迷いの森", en: "Lost Forest" },
   "cave-1": { zh: "龙之洞窟", ja: "竜の洞窟", en: "Dragon's Cavern" },
+  "castle-1": { zh: "古城塞", ja: "古の城塞", en: "Ancient Citadel" },
+  "demon-1": { zh: "魔王城", ja: "魔王城", en: "Demon Lord's Keep" },
 };
 
 const STAGE_INTRO: Record<string, L> = {
+  "plains-1": {
+    zh: "广阔平原上魔物初现。三场连战熟悉属性克制，以风与光的咒文开路！",
+    ja: "広い平原に魔物が現れた。三連戦で弱点を学び、風と光の呪文で進め！",
+    en: "Foes appear on the open plains. Three battles to learn type matchups — advance with wind and light!",
+  },
   "forest-1": {
     zh: "迷雾森林深处魔物横行。连战三场，在 Boss 战前摸清属性弱点，用克制咒文一击必杀！",
     ja: "霧の森の奥で魔物がうろつく。三連戦、Boss 前に弱点を見極め、克制呪文で倒せ！",
@@ -76,15 +84,34 @@ const STAGE_INTRO: Record<string, L> = {
     ja: "暗い洞窟に炎と闇の魔物。二戦を突破し、光と雷の呪文で影龍を終わらせろ！",
     en: "Fire and shadow lurk in the dark cavern. Survive two fights, then end the shadow dragon with light and thunder!",
   },
+  "castle-1": {
+    zh: "荒废城塞中游荡着魔眼与南瓜怪。用圣光与雷电突破，击败城塞番人！",
+    ja: "廃城塞に魔眼とカボチャ魔。聖光と雷で突破し、番人を倒せ！",
+    en: "Evil eyes and pumpkin fiends haunt the ruined citadel. Break through with holy light and thunder!",
+  },
+  "demon-1": {
+    zh: "魔王城最深处，终极连战等待勇者。以全部咒文终结魔王影龙！",
+    ja: "魔王城の最深部、最終三連戦。全ての呪文で影龍を終わらせろ！",
+    en: "At the demon keep's depths, the final gauntlet awaits. Unleash every chant to slay the shadow dragon!",
+  },
 };
 
 const ENCOUNTER_NAME: Record<string, L> = {
+  "plains-1-e1": { zh: "魔蜂", ja: "魔蜂", en: "Demon Bee" },
+  "plains-1-e2": { zh: "毒蛇", ja: "毒蛇", en: "Venom Snake" },
+  "plains-1-boss": { zh: "大蠕虫", ja: "大蠕虫", en: "Great Worm" },
   "forest-1-e1": { zh: "史莱姆", ja: "スライム", en: "Slime" },
   "forest-1-e2": { zh: "森林亡灵", ja: "森の亡霊", en: "Forest Wraith" },
   "forest-1-boss": { zh: "史莱姆魔人", ja: "スライム魔人", en: "Slime Fiend" },
   "cave-1-e1": { zh: "蝙蝠魔", ja: "コウモリ魔", en: "Bat Fiend" },
   "cave-1-e2": { zh: "炎之魔像", ja: "炎のゴーレム", en: "Fire Golem" },
   "cave-1-boss": { zh: "影之龙", ja: "影のドラゴン", en: "Shadow Dragon" },
+  "castle-1-e1": { zh: "魔眼", ja: "魔眼", en: "Evil Eye" },
+  "castle-1-e2": { zh: "南瓜魔", ja: "カボチャ魔", en: "Pumpkin Fiend" },
+  "castle-1-boss": { zh: "城塞番人", ja: "城塞の番人", en: "Citadel Warden" },
+  "demon-1-e1": { zh: "巨大蠕虫", ja: "巨大蠕虫", en: "Colossal Worm" },
+  "demon-1-e2": { zh: "食人花", ja: "食人花", en: "Man-Eater Bloom" },
+  "demon-1-boss": { zh: "魔王影龙", ja: "魔王の影龍", en: "Demon Shadow Dragon" },
 };
 
 const ELEMENT_LABEL: Record<Element, L> = {
@@ -101,6 +128,18 @@ const VOCAB_MEANING: Record<string, L> = {
   "v-yami": { zh: "黑暗", ja: "闇", en: "darkness" },
   "v-chikara": { zh: "力量", ja: "力", en: "power" },
   "v-kaze": { zh: "风", ja: "風", en: "wind" },
+  "v-sora": { zh: "天空", ja: "空", en: "sky" },
+  "v-dobu": { zh: "土地", ja: "土", en: "earth" },
+  "v-mori": { zh: "森林", ja: "森", en: "forest" },
+  "v-hora": { zh: "洞穴", ja: "洞", en: "cavern" },
+  "v-shiro": { zh: "城堡", ja: "城", en: "castle" },
+  "v-mamoru": { zh: "守护", ja: "守", en: "protect" },
+  "v-seinaru": { zh: "神圣", ja: "聖", en: "holy" },
+  "v-yami2": { zh: "黑暗", ja: "闇", en: "darkness" },
+  "v-maou": { zh: "魔王", ja: "魔王", en: "demon lord" },
+  "v-saigo": { zh: "最后", ja: "最後", en: "final" },
+  "v-hokori": { zh: "骄傲", ja: "誇り", en: "pride" },
+  "v-unmei": { zh: "命运", ja: "運命", en: "fate" },
   "v-kaminari": { zh: "雷", ja: "雷", en: "thunder" },
   "v-tsurugi": { zh: "剑", ja: "剣", en: "sword" },
   "v-ryuu": { zh: "龙", ja: "竜", en: "dragon" },

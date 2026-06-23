@@ -60,6 +60,7 @@ export default function BattlePage() {
   const skillTreeUnlocked = useGameStore((s) => s.skillTreeUnlocked);
   const unlockedSkillIds = useGameStore((s) => s.unlockedSkillIds);
   const completeStage = useGameStore((s) => s.completeStage);
+  const discoverEncounter = useGameStore((s) => s.discoverEncounter);
 
   const stage = getStage(stageId);
   const hero = getHeroClass(classId);
@@ -121,6 +122,12 @@ export default function BattlePage() {
       router.replace("/adventure");
     }
   }, [ready, classId, stage, clearedStageIds, router]);
+
+  useEffect(() => {
+    if (encounter?.id) {
+      discoverEncounter(encounter.id);
+    }
+  }, [encounter?.id, discoverEncounter]);
 
   useEffect(() => {
     if (enemy && hero) {

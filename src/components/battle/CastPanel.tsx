@@ -10,6 +10,7 @@ import { useSpeechCast, type CastPhase, type CastResult } from "~/hooks/useSpeec
 import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { PixelButton } from "~/components/pixel/PixelButton";
 import { SkillIcon } from "~/components/pixel/SkillIcon";
+import { ReadingHighlight } from "~/components/battle/ReadingHighlight";
 import {
   getSkillDisplayName,
   getSkillMeaning,
@@ -93,9 +94,20 @@ export function CastPanel({
           <p className="font-pixel text-[11px] text-rpg-5">
             {t(messages.cast.incantTitle, locale)}
           </p>
-          <p className="mt-2 font-jp text-base leading-relaxed text-rpg-5 sm:text-lg">
-            「{incantation}」
-          </p>
+          <div className="mt-2">
+            <ReadingHighlight
+              incantation={incantation}
+              reading={reading}
+              heard={
+                listening
+                  ? cast.interim
+                  : scored && cast.result
+                    ? cast.result.heard
+                    : ""
+              }
+              listening={listening}
+            />
+          </div>
           <button
             type="button"
             onClick={() =>
@@ -122,7 +134,7 @@ export function CastPanel({
           <p className="mt-2 font-jp text-[10px] leading-relaxed text-rpg-14">
             {t(messages.cast.judgeHint, locale)}
           </p>
-          {skill.stageId === "forest-1" && (
+          {(skill.stageId === "plains-1" || skill.stageId === "forest-1") && (
             <p className="mt-1 font-jp text-[10px] text-rpg-11">
               {t(messages.cast.forestHint, locale)}
             </p>
@@ -178,12 +190,14 @@ export function CastPanel({
                 <p className="font-pixel text-[10px] text-rpg-5">
                   {t(messages.cast.chantKana, locale)}
                 </p>
-                <p className="mt-1 font-jp text-base text-rpg-5">{reading}</p>
                 <p className="mt-2 font-jp text-xs text-rpg-12">
-                  {cast.interim ||
-                    formatMessage(t(messages.cast.interimFallback, locale), {
-                      incantation,
-                    })}
+                  {cast.interim
+                    ? formatMessage(t(messages.cast.interimHeard, locale), {
+                        text: cast.interim,
+                      })
+                    : formatMessage(t(messages.cast.interimFallback, locale), {
+                        incantation,
+                      })}
                 </p>
               </div>
             )}

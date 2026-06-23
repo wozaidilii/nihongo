@@ -3,9 +3,64 @@ import type { Stage, StageEncounter } from "~/types";
 /** 关卡数据(技能见 src/data/skills.ts，按职业区分) */
 export const STAGES: Stage[] = [
   {
+    id: "plains-1",
+    title: "風の平原",
+    order: 1,
+    intro:
+      "広い平原に魔物が現れた。三連戦で弱点を見極め、風と光の呪文で道を切り開け！",
+    encounters: [
+      {
+        id: "plains-1-e1",
+        kind: "normal",
+        enemy: {
+          name: "魔蜂",
+          sprite: "🐝",
+          spriteKey: "bee",
+          hp: 28,
+          attack: 5,
+          element: "neutral",
+          weakness: ["fire", "lightning"],
+        },
+      },
+      {
+        id: "plains-1-e2",
+        kind: "normal",
+        enemy: {
+          name: "毒蛇",
+          sprite: "🐍",
+          spriteKey: "snake",
+          hp: 38,
+          attack: 7,
+          element: "shadow",
+          weakness: ["holy", "fire"],
+        },
+      },
+      {
+        id: "plains-1-boss",
+        kind: "boss",
+        enemy: {
+          name: "大蠕虫",
+          sprite: "🪱",
+          spriteKey: "small_worm",
+          hp: 60,
+          attack: 9,
+          element: "neutral",
+          weakness: ["fire", "holy"],
+          resist: ["shadow"],
+        },
+      },
+    ],
+    vocab: [
+      { id: "v-kaze", kana: "かぜ", kanji: "風", romaji: "kaze", zh: "风" },
+      { id: "v-sora", kana: "そら", kanji: "空", romaji: "sora", zh: "天空" },
+      { id: "v-hikari", kana: "ひかり", kanji: "光", romaji: "hikari", zh: "光" },
+      { id: "v-dobu", kana: "どぶ", kanji: "土", romaji: "tsuchi", zh: "土地" },
+    ],
+  },
+  {
     id: "forest-1",
     title: "迷いの森",
-    order: 1,
+    order: 2,
     intro:
       "迷雾森林深处魔物横行。连战三场，在最后的 Boss 战前摸清它们的属性弱点，用克制咒文一击必杀！",
     encounters: [
@@ -53,15 +108,15 @@ export const STAGES: Stage[] = [
     ],
     vocab: [
       { id: "v-hi", kana: "ほのお", kanji: "炎", romaji: "honoo", zh: "火焰" },
-      { id: "v-hikari", kana: "ひかり", kanji: "光", romaji: "hikari", zh: "光" },
       { id: "v-yami", kana: "やみ", kanji: "闇", romaji: "yami", zh: "黑暗" },
       { id: "v-chikara", kana: "ちから", kanji: "力", romaji: "chikara", zh: "力量" },
+      { id: "v-mori", kana: "もり", kanji: "森", romaji: "mori", zh: "森林" },
     ],
   },
   {
     id: "cave-1",
     title: "竜の洞窟",
-    order: 2,
+    order: 3,
     intro:
       "幽暗洞窟中潜伏着炎与影的魔物。突破前两战，在 Boss「影龙」面前用光与雷的咒文终结传说！",
     encounters: [
@@ -108,10 +163,123 @@ export const STAGES: Stage[] = [
       },
     ],
     vocab: [
-      { id: "v-kaze", kana: "かぜ", kanji: "風", romaji: "kaze", zh: "风" },
       { id: "v-kaminari", kana: "かみなり", kanji: "雷", romaji: "kaminari", zh: "雷" },
       { id: "v-tsurugi", kana: "つるぎ", kanji: "剣", romaji: "tsurugi", zh: "剑" },
       { id: "v-ryuu", kana: "りゅう", kanji: "竜", romaji: "ryuu", zh: "龙" },
+      { id: "v-hora", kana: "ほら", kanji: "洞", romaji: "hora", zh: "洞穴" },
+    ],
+  },
+  {
+    id: "castle-1",
+    title: "古の城塞",
+    order: 4,
+    intro:
+      "荒废城塞中游荡着魔眼与南瓜怪。用雷与圣光咒文突破防线，在城主面前证明你的实力！",
+    encounters: [
+      {
+        id: "castle-1-e1",
+        kind: "normal",
+        enemy: {
+          name: "魔眼",
+          sprite: "👁",
+          spriteKey: "eyeball",
+          hp: 58,
+          attack: 11,
+          element: "shadow",
+          weakness: ["holy", "lightning"],
+          resist: ["shadow"],
+        },
+      },
+      {
+        id: "castle-1-e2",
+        kind: "normal",
+        enemy: {
+          name: "カボチャ魔",
+          sprite: "🎃",
+          spriteKey: "pumpking",
+          hp: 62,
+          attack: 13,
+          element: "fire",
+          weakness: ["holy"],
+          resist: ["fire"],
+        },
+      },
+      {
+        id: "castle-1-boss",
+        kind: "boss",
+        enemy: {
+          name: "城塞の番人",
+          sprite: "🎃",
+          spriteKey: "pumpking_boss",
+          hp: 95,
+          attack: 15,
+          element: "fire",
+          weakness: ["holy", "lightning"],
+          resist: ["fire", "shadow"],
+        },
+      },
+    ],
+    vocab: [
+      { id: "v-shiro", kana: "しろ", kanji: "城", romaji: "shiro", zh: "城堡" },
+      { id: "v-mamoru", kana: "まもる", kanji: "守", romaji: "mamoru", zh: "守护" },
+      { id: "v-seinaru", kana: "せいなる", kanji: "聖", romaji: "seinaru", zh: "神圣" },
+      { id: "v-yami2", kana: "やみ", kanji: "闇", romaji: "yami", zh: "黑暗" },
+    ],
+  },
+  {
+    id: "demon-1",
+    title: "魔王城",
+    order: 5,
+    intro:
+      "魔王城的最深处，终极连战等待勇者。以全部咒文与属性克制，终结魔王的传说！",
+    encounters: [
+      {
+        id: "demon-1-e1",
+        kind: "normal",
+        enemy: {
+          name: "巨大蠕虫",
+          sprite: "🐛",
+          spriteKey: "big_worm",
+          hp: 70,
+          attack: 14,
+          element: "neutral",
+          weakness: ["fire", "lightning"],
+        },
+      },
+      {
+        id: "demon-1-e2",
+        kind: "normal",
+        enemy: {
+          name: "食人花",
+          sprite: "🌺",
+          spriteKey: "man_eater",
+          hp: 75,
+          attack: 16,
+          element: "shadow",
+          weakness: ["fire", "holy"],
+          resist: ["shadow"],
+        },
+      },
+      {
+        id: "demon-1-boss",
+        kind: "boss",
+        enemy: {
+          name: "魔王の影龍",
+          sprite: "🐉",
+          spriteKey: "dragon",
+          hp: 150,
+          attack: 22,
+          element: "shadow",
+          weakness: ["holy", "lightning"],
+          resist: ["fire", "shadow"],
+        },
+      },
+    ],
+    vocab: [
+      { id: "v-maou", kana: "まおう", kanji: "魔王", romaji: "maou", zh: "魔王" },
+      { id: "v-saigo", kana: "さいご", kanji: "最後", romaji: "saigo", zh: "最后" },
+      { id: "v-hokori", kana: "ほこり", kanji: "誇り", romaji: "hokori", zh: "骄傲" },
+      { id: "v-unmei", kana: "うんめい", kanji: "運命", romaji: "unmei", zh: "命运" },
     ],
   },
 ];
@@ -156,4 +324,12 @@ export function isStageUnlocked(stageId: string, clearedIds: string[] = []): boo
   if (idx <= 0) return idx === 0;
   const prev = STAGES_ORDERED[idx - 1];
   return prev ? clearedIds.includes(prev.id) : true;
+}
+
+/** 咒文解锁：某关技能是否可解锁（需通关前一关） */
+export function isStageSkillGateOpen(
+  stageId: string,
+  clearedStageIds: string[] = [],
+): boolean {
+  return isStageUnlocked(stageId, clearedStageIds);
 }

@@ -326,6 +326,99 @@ def build_all_enemies() -> dict:
             ),
         ),
         ("golem", build_golem),
+        (
+            "bee",
+            lambda: build_grid_enemy(
+                GridEnemyConfig(
+                    id="bee",
+                    source="lpc-monsters/bee.png",
+                    frame_w=32,
+                    frame_h=32,
+                    anims={"idle": (0, 4), "attack": (1, 3), "hurt": (2, 1), "death": (3, 2)},
+                    scale=2,
+                    fps={"idle": 8, "attack": 12},
+                )
+            ),
+        ),
+        (
+            "snake",
+            lambda: build_grid_enemy(
+                GridEnemyConfig(
+                    id="snake",
+                    source="lpc-monsters/snake.png",
+                    anims={"idle": (0, 4), "attack": (1, 4), "hurt": (2, 1), "death": (3, 3)},
+                    scale=1.5,
+                )
+            ),
+        ),
+        (
+            "small_worm",
+            lambda: build_grid_enemy(
+                GridEnemyConfig(
+                    id="small_worm",
+                    source="lpc-monsters/small_worm.png",
+                    anims={"idle": (0, 4), "attack": (1, 5), "hurt": (2, 1), "death": (3, 4)},
+                    scale=1.4,
+                )
+            ),
+        ),
+        (
+            "eyeball",
+            lambda: build_grid_enemy(
+                GridEnemyConfig(
+                    id="eyeball",
+                    source="lpc-monsters/eyeball.png",
+                    anims={"idle": (0, 4), "attack": (1, 4), "hurt": (2, 1), "death": (3, 3)},
+                    scale=1.5,
+                )
+            ),
+        ),
+        (
+            "pumpking",
+            lambda: build_grid_enemy(
+                GridEnemyConfig(
+                    id="pumpking",
+                    source="lpc-monsters/pumpking.png",
+                    anims={"idle": (0, 4), "attack": (1, 4), "hurt": (2, 1), "death": (3, 4)},
+                    scale=1.5,
+                )
+            ),
+        ),
+        (
+            "pumpking_boss",
+            lambda: build_grid_enemy(
+                GridEnemyConfig(
+                    id="pumpking_boss",
+                    source="lpc-monsters/pumpking.png",
+                    anims={"idle": (0, 4), "attack": (1, 4), "hurt": (2, 1), "death": (3, 4)},
+                    scale=1.85,
+                    flip=False,
+                )
+            ),
+        ),
+        (
+            "big_worm",
+            lambda: build_grid_enemy(
+                GridEnemyConfig(
+                    id="big_worm",
+                    source="lpc-monsters/big_worm.png",
+                    anims={"idle": (0, 4), "attack": (1, 5), "hurt": (2, 1), "death": (3, 4)},
+                    scale=1.6,
+                )
+            ),
+        ),
+        (
+            "man_eater",
+            lambda: build_grid_enemy(
+                GridEnemyConfig(
+                    id="man_eater",
+                    source="lpc-monsters/man_eater_flower.png",
+                    anims={"idle": (0, 4), "attack": (1, 6), "hurt": (2, 1), "death": (3, 5)},
+                    scale=1.2,
+                    flip=False,
+                )
+            ),
+        ),
     ]
 
     for enemy_id, builder in builders:

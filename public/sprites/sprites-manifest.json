@@ -442,6 +442,390 @@
         }
       }
     },
+    "bee": {
+      "sheet": "/sprites/enemies/bee.png",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "sheetWidth": 256,
+      "sheetHeight": 256,
+      "scale": 1,
+      "flipX": false,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 8
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2
+          ],
+          "fps": 12
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0,
+            1
+          ],
+          "fps": 4
+        }
+      }
+    },
+    "snake": {
+      "sheet": "/sprites/enemies/snake.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "sheetWidth": 384,
+      "sheetHeight": 384,
+      "scale": 1,
+      "flipX": false,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 8
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0,
+            1,
+            2
+          ],
+          "fps": 4
+        }
+      }
+    },
+    "small_worm": {
+      "sheet": "/sprites/enemies/small_worm.png",
+      "frameWidth": 89,
+      "frameHeight": 89,
+      "sheetWidth": 445,
+      "sheetHeight": 356,
+      "scale": 1,
+      "flipX": false,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "fps": 8
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        }
+      }
+    },
+    "eyeball": {
+      "sheet": "/sprites/enemies/eyeball.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "sheetWidth": 384,
+      "sheetHeight": 384,
+      "scale": 1,
+      "flipX": false,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 8
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0,
+            1,
+            2
+          ],
+          "fps": 4
+        }
+      }
+    },
+    "pumpking": {
+      "sheet": "/sprites/enemies/pumpking.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "sheetWidth": 384,
+      "sheetHeight": 384,
+      "scale": 1,
+      "flipX": false,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 8
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        }
+      }
+    },
+    "pumpking_boss": {
+      "sheet": "/sprites/enemies/pumpking_boss.png",
+      "frameWidth": 118,
+      "frameHeight": 118,
+      "sheetWidth": 472,
+      "sheetHeight": 472,
+      "scale": 1,
+      "flipX": false,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 8
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        }
+      }
+    },
+    "big_worm": {
+      "sheet": "/sprites/enemies/big_worm.png",
+      "frameWidth": 102,
+      "frameHeight": 102,
+      "sheetWidth": 510,
+      "sheetHeight": 408,
+      "scale": 1,
+      "flipX": false,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "fps": 8
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        }
+      }
+    },
+    "man_eater": {
+      "sheet": "/sprites/enemies/man_eater.png",
+      "frameWidth": 76,
+      "frameHeight": 76,
+      "sheetWidth": 456,
+      "sheetHeight": 304,
+      "scale": 1,
+      "flipX": false,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "fps": 8
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "fps": 4
+        }
+      }
+    },
     "dragon": {
       "sheet": "/sprites/enemies/dragon.png",
       "frameWidth": 174,

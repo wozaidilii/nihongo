@@ -229,7 +229,10 @@ export default function AdventurePage() {
         ))}
       </div>
 
-      <div className="flex justify-center pb-2">
+      <div className="flex justify-center gap-3 pb-2">
+        <PixelButton className="w-full max-w-xs sm:w-auto" onClick={() => router.push("/codex")}>
+          {t(messages.adventure.openCodex, locale)}
+        </PixelButton>
         <PixelButton className="w-full max-w-xs sm:w-auto" onClick={() => router.push("/")}>
           {t(messages.common.backToTitle, locale)}
         </PixelButton>

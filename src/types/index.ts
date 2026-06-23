@@ -190,6 +190,8 @@ export interface PlayerState {
   skillTreeUnlocked: string[];
   /** 已解锁的战斗咒文 id（按职业进度） */
   unlockedSkillIds: string[];
+  /** 图鉴：已遭遇的敌人（遭遇战 id） */
+  discoveredEncounterIds: string[];
 }
 
 /** 关卡通关结算快照（仅 UI 展示） */

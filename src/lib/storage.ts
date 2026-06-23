@@ -1,4 +1,5 @@
 import { getStarterSkillIds } from "~/data/skills";
+import { STAGES_ORDERED } from "~/data/stages";
 import type { HeroClassId, PlayerState } from "~/types";
 
 /**
@@ -10,7 +11,7 @@ import type { HeroClassId, PlayerState } from "~/types";
 const STORAGE_KEY = "nihongo-hero-save";
 
 /** 当前存档版本，结构变更时 +1 并在 migrate 处理 */
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 /** 生成一份全新的默认存档 */
 export function createDefaultPlayerState(): PlayerState {
@@ -23,7 +24,22 @@ export function createDefaultPlayerState(): PlayerState {
     learnedVocabIds: [],
     skillTreeUnlocked: [],
     unlockedSkillIds: [],
+    discoveredEncounterIds: [],
   };
+}
+
+/** 老存档：补全跳关前的通关记录 */
+function backfillClearedStages(cleared: string[]): string[] {
+  const out = new Set(cleared);
+  for (const stage of STAGES_ORDERED) {
+    if (!out.has(stage.id)) continue;
+    const idx = STAGES_ORDERED.findIndex((s) => s.id === stage.id);
+    for (let i = 0; i < idx; i++) {
+      const prev = STAGES_ORDERED[i];
+      if (prev) out.add(prev.id);
+    }
+  }
+  return [...out];
 }
 
 const VALID_CLASS_IDS: HeroClassId[] = ["knight", "mage", "rogue", "samurai"];
@@ -58,8 +74,9 @@ export function sanitizePlayerState(raw: unknown): PlayerState {
       : null;
 
   const level = Math.max(1, toNonNegInt(data.level, base.level));
-  const clearedStageIds = toStringArray(data.clearedStageIds);
+  let clearedStageIds = backfillClearedStages(toStringArray(data.clearedStageIds));
   let unlockedSkillIds = toStringArray(data.unlockedSkillIds);
+  let discoveredEncounterIds = toStringArray(data.discoveredEncounterIds);
 
   // v2 → v3：按等级补全已解锁咒文（首咒文 Lv1 免费）
   if (unlockedSkillIds.length === 0 && classId) {
@@ -75,6 +92,7 @@ export function sanitizePlayerState(raw: unknown): PlayerState {
     learnedVocabIds: toStringArray(data.learnedVocabIds),
     skillTreeUnlocked: toStringArray(data.skillTreeUnlocked),
     unlockedSkillIds,
+    discoveredEncounterIds,
   };
 }
 

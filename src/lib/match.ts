@@ -195,7 +195,7 @@ function buildReadingMap(incantation: string, reading: string): Map<string, stri
 }
 
 /** 按咒文/读音对齐表 + 常见别名，把识别文本尽量转成假名读音 */
-function heardToReadingForm(
+export function heardToReadingForm(
   heard: string,
   incantation: string,
   reading: string,
@@ -208,6 +208,123 @@ function heardToReadingForm(
     if (surface && kana) s = s.split(surface).join(kana);
   }
   return applyAsrAliases(s);
+}
+
+/** 朗读进度：归一化假名前缀匹配长度 */
+export interface ReadingMatchProgress {
+  /** 已匹配假名字数（归一化后） */
+  matched: number;
+  /** 目标假名总字数（归一化后） */
+  total: number;
+}
+
+/** 计算当前识别文本相对目标读音的匹配进度（用于实时高光） */
+export function computeReadingMatchProgress(
+  heard: string | null | undefined,
+  incantation: string,
+  reading: string,
+): ReadingMatchProgress {
+  const target = normalizeJa(reading);
+  const total = target.length;
+  if (!total) return { matched: 0, total: 0 };
+
+  const aligned = heardToReadingForm(heard ?? "", incantation, reading);
+  const h = normalizeJa(aligned);
+  if (!h) return { matched: 0, total };
+
+  let matched = 0;
+  const len = Math.min(h.length, target.length);
+  while (matched < len && h[matched] === target[matched]) {
+    matched++;
+  }
+  return { matched, total };
+}
+
+export interface ReadingHighlightSegment {
+  text: string;
+  /** 该段是否已匹配 */
+  matched: boolean;
+}
+
+/**
+ * 将展示用假名拆成高亮片段（保留空格与原文排版）。
+ * matchedNormalized：归一化后已匹配字符数。
+ */
+export function buildReadingHighlightSegments(
+  displayReading: string,
+  matchedNormalized: number,
+): ReadingHighlightSegment[] {
+  const segments: ReadingHighlightSegment[] = [];
+  let normIdx = 0;
+  let buf = "";
+  let bufMatched = true;
+
+  const flush = () => {
+    if (!buf) return;
+    segments.push({ text: buf, matched: bufMatched });
+    buf = "";
+  };
+
+  for (const ch of displayReading) {
+    const n = normalizeJa(ch);
+    if (!n) {
+      buf += ch;
+      continue;
+    }
+    const charMatched = normIdx < matchedNormalized;
+    if (buf && charMatched !== bufMatched) {
+      flush();
+    }
+    bufMatched = charMatched;
+    buf += ch;
+    normIdx += n.length;
+  }
+  flush();
+  return segments.length > 0 ? segments : [{ text: displayReading, matched: false }];
+}
+
+/** 咒文展示高亮：按假名进度映射到汉字/假名混合咒文 */
+export function buildIncantationHighlightSegments(
+  incantation: string,
+  reading: string,
+  matchedNormalized: number,
+): ReadingHighlightSegment[] {
+  if (!incantation) return [];
+  if (matchedNormalized <= 0) {
+    return [{ text: incantation, matched: false }];
+  }
+
+  const map = buildReadingMap(incantation, reading);
+  const targetLen = normalizeJa(reading).length;
+  if (map.size === 0) {
+    return [{ text: incantation, matched: matchedNormalized >= targetLen }];
+  }
+
+  const segments: ReadingHighlightSegment[] = [];
+  let i = 0;
+  let readProgress = 0;
+  const sortedKeys = [...map.keys()].sort((a, b) => b.length - a.length);
+
+  while (i < incantation.length) {
+    let surface = incantation[i]!;
+    for (const key of sortedKeys) {
+      if (incantation.slice(i, i + key.length) === key) {
+        surface = key;
+        break;
+      }
+    }
+
+    const kana = map.get(surface);
+    const kanaLen = kana ? normalizeJa(kana).length : normalizeJa(surface).length;
+    const surfaceMatched =
+      kanaLen > 0 && readProgress + kanaLen <= matchedNormalized;
+
+    segments.push({ text: surface, matched: surfaceMatched });
+    readProgress += kanaLen;
+    i += surface.length;
+  }
+
+  return segments.length > 0 ? segments : [{ text: incantation, matched: false }];
 }
 
 /**
@@ -284,8 +401,11 @@ export function scoreSkillCastDetailed(
     { score: scoreReading(heard, read), path: "reading_direct" },
   ];
 
-  // 第一关：额外比对假名核心片段
-  if (options?.stageId === "forest-1" && coreRead) {
+  // 入门关：额外比对假名核心片段（平原 / 森林）
+  if (
+    (options?.stageId === "plains-1" || options?.stageId === "forest-1") &&
+    coreRead
+  ) {
     candidates.push({
       score: scoreReading(aligned, coreRead),
       path: "reading_core",

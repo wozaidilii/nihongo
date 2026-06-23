@@ -1,9 +1,10 @@
 import type { HeroClassId, Skill } from "~/types";
 import { getAggregatedModifiers } from "~/data/skillTree";
+import { isStageSkillGateOpen, STAGES_ORDERED } from "~/data/stages";
 import { elementFromFx } from "~/lib/element";
 
 /** 关卡顺序：决定咒文解锁进度 */
-const STAGE_ORDER = ["forest-1", "cave-1"] as const;
+const STAGE_ORDER = STAGES_ORDERED.map((s) => s.id);
 
 /**
  * 各职业专属技能：同一关卡不同职业咒文、特效、伤害均不同。
@@ -11,6 +12,34 @@ const STAGE_ORDER = ["forest-1", "cave-1"] as const;
  */
 export const CLASS_SKILLS: Record<HeroClassId, Record<string, Skill[]>> = {
   knight: {
+    "plains-1": [
+      {
+        id: "k-breeze",
+        classId: "knight",
+        stageId: "plains-1",
+        nameJa: "風刃",
+        nameZh: "风刃",
+        incantation: "風よ、刃となれ",
+        reading: "かぜよ はとなれ",
+        romaji: "kaze yo, ha to nare",
+        baseDamage: 28,
+        zh: "化风为刃，切开平原魔物！",
+        fxKey: "slash",
+      },
+      {
+        id: "k-dawn",
+        classId: "knight",
+        stageId: "plains-1",
+        nameJa: "暁光",
+        nameZh: "晓光",
+        incantation: "暁よ、闇を断て",
+        reading: "あかつきよ やみをたて",
+        romaji: "akatsuki yo, yami o tate",
+        baseDamage: 30,
+        zh: "以晓之光划破黑暗！",
+        fxKey: "holy",
+      },
+    ],
     "forest-1": [
       {
         id: "k-smite",
@@ -67,8 +96,92 @@ export const CLASS_SKILLS: Record<HeroClassId, Record<string, Skill[]>> = {
         fxKey: "holy",
       },
     ],
+    "castle-1": [
+      {
+        id: "k-bastion",
+        classId: "knight",
+        stageId: "castle-1",
+        nameJa: "城塞の盾",
+        nameZh: "城塞之盾",
+        incantation: "城塞よ、我を護れ",
+        reading: "じょうさいよ われをまもれ",
+        romaji: "jousai yo, ware o mamore",
+        baseDamage: 44,
+        zh: "以城塞之名守护并反击！",
+        fxKey: "holy",
+      },
+      {
+        id: "k-thunder-blade",
+        classId: "knight",
+        stageId: "castle-1",
+        nameJa: "雷刃",
+        nameZh: "雷刃",
+        incantation: "雷よ、刃に宿れ",
+        reading: "かみなりよ はにやどれ",
+        romaji: "kaminari yo, ha ni yadore",
+        baseDamage: 48,
+        zh: "雷电附刃，斩断城塞妖魔！",
+        fxKey: "lightning",
+      },
+    ],
+    "demon-1": [
+      {
+        id: "k-final-oath",
+        classId: "knight",
+        stageId: "demon-1",
+        nameJa: "終焉の誓約",
+        nameZh: "终焉誓约",
+        incantation: "終焉の時、悪を断つ",
+        reading: "しゅうえんのとき あくをたつ",
+        romaji: "shuuen no toki, aku o tatsu",
+        baseDamage: 55,
+        zh: "在终焉之时斩断邪恶！",
+        fxKey: "holy",
+      },
+      {
+        id: "k-demon-slay",
+        classId: "knight",
+        stageId: "demon-1",
+        nameJa: "魔王斬",
+        nameZh: "魔王斩",
+        incantation: "魔王よ、我が剣に散れ",
+        reading: "まおうよ わがけんにちれ",
+        romaji: "maou yo, waga ken ni chire",
+        baseDamage: 58,
+        zh: "以圣剑击散魔王！",
+        fxKey: "slash",
+      },
+    ],
   },
   mage: {
+    "plains-1": [
+      {
+        id: "m-gust",
+        classId: "mage",
+        stageId: "plains-1",
+        nameJa: "疾風",
+        nameZh: "疾风",
+        incantation: "風よ、我に従え",
+        reading: "かぜよ われにしたがえ",
+        romaji: "kaze yo, ware ni shitagae",
+        baseDamage: 26,
+        zh: "驱使疾风撕裂敌人！",
+        fxKey: "shadow",
+      },
+      {
+        id: "m-spark",
+        classId: "mage",
+        stageId: "plains-1",
+        nameJa: "火花",
+        nameZh: "火花",
+        incantation: "火花よ、舞い上がれ",
+        reading: "ひばちよ まいあがれ",
+        romaji: "hibachi yo, maiagare",
+        baseDamage: 28,
+        zh: "点燃火花，焚尽魔蜂！",
+        fxKey: "fire",
+      },
+    ],
     "forest-1": [
       {
         id: "m-orb",
@@ -125,8 +238,92 @@ export const CLASS_SKILLS: Record<HeroClassId, Record<string, Skill[]>> = {
         fxKey: "shadow",
       },
     ],
+    "castle-1": [
+      {
+        id: "m-arcane",
+        classId: "mage",
+        stageId: "castle-1",
+        nameJa: "魔眼封じ",
+        nameZh: "封魔眼",
+        incantation: "魔眼よ、眠れ",
+        reading: "まがんよ ねむれ",
+        romaji: "magan yo, nemure",
+        baseDamage: 46,
+        zh: "封印魔眼，使其归于沉寂！",
+        fxKey: "shadow",
+      },
+      {
+        id: "m-sanctify",
+        classId: "mage",
+        stageId: "castle-1",
+        nameJa: "聖域",
+        nameZh: "圣域",
+        incantation: "聖域よ、邪を祓え",
+        reading: "せいいきよ じゃをはらえ",
+        romaji: "seiiki yo, ja o harae",
+        baseDamage: 50,
+        zh: "展开圣域，净化城塞！",
+        fxKey: "holy",
+      },
+    ],
+    "demon-1": [
+      {
+        id: "m-apocalypse",
+        classId: "mage",
+        stageId: "demon-1",
+        nameJa: "終末の火",
+        nameZh: "终末之火",
+        incantation: "終末の火、魔王を焼け",
+        reading: "しゅうまつのひ まおうをやけ",
+        romaji: "shuumatsu no hi, maou o yake",
+        baseDamage: 56,
+        zh: "终末之火，焚尽魔王！",
+        fxKey: "fire",
+      },
+      {
+        id: "m-judgment-bolt",
+        classId: "mage",
+        stageId: "demon-1",
+        nameJa: "裁きの雷",
+        nameZh: "裁决之雷",
+        incantation: "裁きの雷、降り注げ",
+        reading: "さばきのかみなり ふりそそげ",
+        romaji: "sabaki no kaminari, furisosoge",
+        baseDamage: 58,
+        zh: "裁决之雷，降临魔王城！",
+        fxKey: "lightning",
+      },
+    ],
   },
   rogue: {
+    "plains-1": [
+      {
+        id: "r-quick",
+        classId: "rogue",
+        stageId: "plains-1",
+        nameJa: "速撃",
+        nameZh: "速击",
+        incantation: "サッと刺す、風だぜ",
+        reading: "さっとさす かぜだぜ",
+        romaji: "satto sasu, kaze da ze",
+        baseDamage: 28,
+        zh: "如风般快速刺击！",
+        fxKey: "dagger",
+      },
+      {
+        id: "r-buzz",
+        classId: "rogue",
+        stageId: "plains-1",
+        nameJa: "蜂刺し",
+        nameZh: "蜂刺",
+        incantation: "蜂みたいに刺すぜ",
+        reading: "はちみたいにさすぜ",
+        romaji: "hachi mitai ni sasu ze",
+        baseDamage: 30,
+        zh: "像蜂一样蛰刺敌人！",
+        fxKey: "dagger",
+      },
+    ],
     "forest-1": [
       {
         id: "r-stab",
@@ -183,8 +380,92 @@ export const CLASS_SKILLS: Record<HeroClassId, Record<string, Skill[]>> = {
         fxKey: "dagger",
       },
     ],
+    "castle-1": [
+      {
+        id: "r-ambush",
+        classId: "rogue",
+        stageId: "castle-1",
+        nameJa: "城塞奇襲",
+        nameZh: "城塞奇袭",
+        incantation: "城塞の影、俺の物だ",
+        reading: "じょうさいのかげ おれのものだ",
+        romaji: "jousai no kage, ore no mono da",
+        baseDamage: 44,
+        zh: "借城塞阴影奇袭！",
+        fxKey: "shadow",
+      },
+      {
+        id: "r-holy-cut",
+        classId: "rogue",
+        stageId: "castle-1",
+        nameJa: "聖光切り",
+        nameZh: "圣光切",
+        incantation: "光で切る、決まってる",
+        reading: "ひかりできる きまってる",
+        romaji: "hikari de kiru, kimatteru",
+        baseDamage: 48,
+        zh: "用圣光切开南瓜魔！",
+        fxKey: "holy",
+      },
+    ],
+    "demon-1": [
+      {
+        id: "r-maou-stab",
+        classId: "rogue",
+        stageId: "demon-1",
+        nameJa: "魔王刺し",
+        nameZh: "魔王刺",
+        incantation: "魔王だろうが刺すぜ",
+        reading: "まおうだろうがさすぜ",
+        romaji: "maou darou ga sasu ze",
+        baseDamage: 54,
+        zh: "管他是魔王，照刺不误！",
+        fxKey: "dagger",
+      },
+      {
+        id: "r-last-word",
+        classId: "rogue",
+        stageId: "demon-1",
+        nameJa: "終局の一言",
+        nameZh: "终局一言",
+        incantation: "これが最後だ、魔王",
+        reading: "これがさいごだ まおう",
+        romaji: "kore ga saigo da, maou",
+        baseDamage: 56,
+        zh: "魔王，这是最后一击！",
+        fxKey: "shadow",
+      },
+    ],
   },
   samurai: {
+    "plains-1": [
+      {
+        id: "s-plain-wind",
+        classId: "samurai",
+        stageId: "plains-1",
+        nameJa: "平原風斬",
+        nameZh: "平原风斩",
+        incantation: "風よ、平原を切れでござる",
+        reading: "かぜよ へいげんをきれでござる",
+        romaji: "kaze yo, heigen o kire de gozaru",
+        baseDamage: 28,
+        zh: "以风斩开平原之敌！",
+        fxKey: "slash",
+      },
+      {
+        id: "s-grass-flash",
+        classId: "samurai",
+        stageId: "plains-1",
+        nameJa: "草閃",
+        nameZh: "草闪",
+        incantation: "草の如く、一閃でござる",
+        reading: "くさのごとく いっせんでござる",
+        romaji: "kusa no gotoku, issen de gozaru",
+        baseDamage: 30,
+        zh: "如草般迅捷的一闪！",
+        fxKey: "slash",
+      },
+    ],
     "forest-1": [
       {
         id: "s-wind",
@@ -241,6 +522,62 @@ export const CLASS_SKILLS: Record<HeroClassId, Record<string, Skill[]>> = {
         fxKey: "thrust",
       },
     ],
+    "castle-1": [
+      {
+        id: "s-castle-draw",
+        classId: "samurai",
+        stageId: "castle-1",
+        nameJa: "城塞抜刀",
+        nameZh: "城塞拔刀",
+        incantation: "城塞にて、抜刀致すでござる",
+        reading: "じょうさいにて ばっとういたすでござる",
+        romaji: "jousai nite, battou itasu de gozaru",
+        baseDamage: 46,
+        zh: "于城塞之中拔刀一击！",
+        fxKey: "slash",
+      },
+      {
+        id: "s-holy-blade",
+        classId: "samurai",
+        stageId: "castle-1",
+        nameJa: "聖刀",
+        nameZh: "圣刀",
+        incantation: "聖なる刃、斬り下ろすでござる",
+        reading: "せいなるは きりおろすでござる",
+        romaji: "sei naru ha, kiri orosu de gozaru",
+        baseDamage: 50,
+        zh: "以圣刀斩落城主！",
+        fxKey: "holy",
+      },
+    ],
+    "demon-1": [
+      {
+        id: "s-demon-iai",
+        classId: "samurai",
+        stageId: "demon-1",
+        nameJa: "魔王居合",
+        nameZh: "魔王居合",
+        incantation: "魔王に向け、居合の極意でござる",
+        reading: "まおうにむけ いあいのきわみでござる",
+        romaji: "maou ni muke, iai no kyowmi de gozaru",
+        baseDamage: 56,
+        zh: "以居合极意斩向魔王！",
+        fxKey: "thrust",
+      },
+      {
+        id: "s-final-bushido",
+        classId: "samurai",
+        stageId: "demon-1",
+        nameJa: "武士道・終",
+        nameZh: "武士道·终",
+        incantation: "武士道、ここに極まるでござる",
+        reading: "ぶしどう ここにきわまるでござる",
+        romaji: "bushidou, koko ni kiwamaru de gozaru",
+        baseDamage: 58,
+        zh: "武士道，在此终结魔王！",
+        fxKey: "slash",
+      },
+    ],
   },
 };
 
@@ -281,9 +618,8 @@ export function getStarterSkillIds(
   clearedStageIds: string[] = [],
 ): string[] {
   const progression = getClassSkillProgression(classId);
-  const forestCleared = clearedStageIds.includes("forest-1");
-  const allowed = progression.filter(
-    (s) => s.stageId !== "cave-1" || forestCleared,
+  const allowed = progression.filter((s) =>
+    isStageSkillGateOpen(s.stageId, clearedStageIds),
   );
   const count = Math.min(Math.max(1, level), allowed.length);
   return allowed.slice(0, count).map((s) => s.id);
@@ -296,11 +632,9 @@ export function getUnlockableBattleSkills(
   unlockedSkillIds: string[] = [],
 ): Skill[] {
   const unlocked = new Set(unlockedSkillIds);
-  const forestCleared = clearedStageIds.includes("forest-1");
   return getClassSkillProgression(classId).filter((skill) => {
     if (unlocked.has(skill.id)) return false;
-    if (skill.stageId === "cave-1" && !forestCleared) return false;
-    return true;
+    return isStageSkillGateOpen(skill.stageId, clearedStageIds);
   });
 }
 

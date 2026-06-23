@@ -1,6 +1,17 @@
 import { STAGES, STAGES_ORDERED } from "~/data/stages";
-import { getClassSkillProgression, getSkillsForStage } from "~/data/skills";
+import {
+  getClassSkillProgression,
+  getSkillsForStage,
+} from "~/data/skills";
 import type { HeroClassId, Skill, Vocab } from "~/types";
+
+/** 四职业 id */
+const ALL_CLASSES: HeroClassId[] = [
+  "knight",
+  "mage",
+  "rogue",
+  "samurai",
+];
 
 /** 全关卡 id 顺序 */
 export const STAGE_IDS_ORDERED = STAGES_ORDERED.map((s) => s.id);
@@ -52,18 +63,43 @@ export function getAllCodexEncounters(): CodexEncounterEntry[] {
   return out;
 }
 
-/** 已解锁咒文详情 */
+/** 按 id 取咒文（全职业全关卡） */
+export function getSkillById(skillId: string): Skill | undefined {
+  if (!skillId) return undefined;
+  for (const classId of ALL_CLASSES) {
+    for (const skill of getClassSkillProgression(classId)) {
+      if (skill.id === skillId) return skill;
+    }
+  }
+  return undefined;
+}
+
+/** 图鉴：已见过的咒文详情 */
+export function getDiscoveredSkillDetails(discoveredSkillIds: string[]): Skill[] {
+  const seen = new Set<string>();
+  const out: Skill[] = [];
+  for (const id of discoveredSkillIds) {
+    if (seen.has(id)) continue;
+    const skill = getSkillById(id);
+    if (skill) {
+      seen.add(id);
+      out.push(skill);
+    }
+  }
+  return out;
+}
+
+/** 已解锁咒文详情（当前档位，兼容旧调用） */
 export function getUnlockedSkillDetails(
   classId: HeroClassId | null,
   unlockedSkillIds: string[],
 ): Skill[] {
-  if (!classId) return [];
+  if (!classId) return getDiscoveredSkillDetails(unlockedSkillIds);
   const set = new Set(unlockedSkillIds);
   return getClassSkillProgression(classId).filter((s) => set.has(s.id));
 }
 
 /** 某关卡全部咒文（四职业合集，图鉴参考） */
 export function getStageSkillCatalog(stageId: string): Skill[] {
-  const classes: HeroClassId[] = ["knight", "mage", "rogue", "samurai"];
-  return classes.flatMap((c) => getSkillsForStage(stageId, c));
+  return ALL_CLASSES.flatMap((c) => getSkillsForStage(stageId, c));
 }

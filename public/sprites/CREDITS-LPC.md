@@ -27,6 +27,18 @@
 
 敌人精灵生成：`scripts/build_lpc_enemies.py`（由 `build_lpc_sprites.py` 调用）
 
+## 标题页魔王城
+
+可选横幅：`public/sprites/title/demon-castle.png`（由 LPC 城堡贴图调色生成）
+
+来源：[LPC Interior Castle Tiles](https://lpc.opengameart.org/content/lpc-interior-castle-tiles)（Lanea Zimmerman，CC-BY-SA 3.0 / GPL 3.0）
+
+```bash
+npm run build:title
+```
+
+无位图时标题页回退为 CSS 像素城堡剪影。
+
 影龙署名：Stephen "Redshrike" Challener、Surt（原设）、Daniel Stephens / Scribe（呼吸动画）
 
 技能特效为项目内生成（`scripts/build_fx_and_dragon.py`）。

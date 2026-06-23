@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   getAllCodexEncounters,
   getAllVocab,
-  getUnlockedSkillDetails,
+  getDiscoveredSkillDetails,
 } from "~/data/codex";
 import { getHeroClass } from "~/data/classes";
 import { iconKeyForSkill } from "~/data/skillIcons";
@@ -39,7 +39,7 @@ export default function CodexPage() {
   const classId = useGameStore((s) => s.classId);
   const level = useGameStore((s) => s.level);
   const learnedVocabIds = useGameStore((s) => s.learnedVocabIds);
-  const unlockedSkillIds = useGameStore((s) => s.unlockedSkillIds);
+  const discoveredSkillIds = useGameStore((s) => s.discoveredSkillIds);
   const discoveredEncounterIds = useGameStore((s) => s.discoveredEncounterIds);
 
   const [tab, setTab] = useState<CodexTab>("vocab");
@@ -53,8 +53,8 @@ export default function CodexPage() {
   }, [learnedVocabIds]);
 
   const spellEntries = useMemo(
-    () => getUnlockedSkillDetails(classId, unlockedSkillIds),
-    [classId, unlockedSkillIds],
+    () => getDiscoveredSkillDetails(discoveredSkillIds),
+    [discoveredSkillIds],
   );
 
   const enemyEntries = useMemo(() => {

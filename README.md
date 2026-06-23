@@ -59,7 +59,31 @@ npm run dev        # http://localhost:3000
 ```bash
 npm run typecheck  # 类型检查
 npm run build      # 生产构建
+npm run verify:voices  # 检查 skills.ts 与 public/voices 是否对齐
 ```
+
+## 配音生成 (VoxCPM)
+
+**声线一致的关键**：每条咒文不要单独 Voice Design（每次音色都会变）。正确流程：
+
+1. **锚点** `sample_*.wav` — Voice Design 生成一次（选职业试听 = 该角色固定声线）
+2. **咒文** — 全部从对应 `sample_*.wav` **克隆**，只念 incantation 原文
+
+```bash
+# 1. 改 persona 后，先重生四语体锚点
+VoxCPM/.venv/bin/python scripts/generate_voices.py --samples-only
+
+# 2. 再克隆全部咒文
+VoxCPM/.venv/bin/python scripts/generate_voices.py --skills-only --only-missing
+
+# 四职业示例（锚点+3条咒文，试听声线是否一致）
+VoxCPM/.venv/bin/python scripts/preview_all_classes.py
+# npm run dev → http://localhost:3000/voices/preview
+
+npm run verify:voices
+```
+
+配置：`scripts/voice_config.json`（`persona`、`skill_mode: clone`、`skill_clone` 参数）
 
 ## 扩展
 

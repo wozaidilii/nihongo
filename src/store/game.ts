@@ -1,7 +1,12 @@
 "use client";
 
 import { create } from "zustand";
-import type { HeroClassId, PlayerState, StageClearResult } from "~/types";
+import type {
+  HeroClassId,
+  PlayerState,
+  SaveSlotIndex,
+  StageClearResult,
+} from "~/types";
 import { getStage } from "~/data/stages";
 import {
   getPendingBattleSkillUnlockCount,
@@ -10,9 +15,14 @@ import {
   getUnlockableBattleSkills,
 } from "~/data/skills";
 import {
+  codexFromPlayerState,
   createDefaultPlayerState,
-  loadPlayerState,
-  savePlayerState,
+  createEmptySlot,
+  isSlotOccupied,
+  loadSaveRoot,
+  mergePlayerState,
+  saveSaveRoot,
+  slotFromPlayerState,
 } from "~/lib/storage";
 import { getAvailableSkillPicks } from "~/data/skillTree";
 
@@ -21,46 +31,28 @@ const EXP_PER_STAGE = 100;
 /** 升级所需经验 */
 const EXP_PER_LEVEL = 100;
 
-interface GameStore extends PlayerState {
-  /** 是否已从 localStorage 完成水合 */
-  hydrated: boolean;
-  /** 客户端挂载后调用：从存档恢复 */
-  hydrate: () => void;
-  /** 选择职业 */
-  selectClass: (id: HeroClassId) => void;
-  /** 通关结算：记录通关、加经验 */
-  completeStage: (stageId: string) => StageClearResult;
-  /** 解锁战斗咒文（消耗技能点） */
-  unlockBattleSkill: (skillId: string) => void;
-  /** 图鉴：记录遭遇战 */
-  discoverEncounter: (encounterId: string) => void;
-  /** 解锁技能树节点 */
-  unlockSkillNode: (nodeId: string) => void;
-  /** 是否还有待选技能树分支 */
-  hasPendingSkillPick: () => boolean;
-  /** 是否还有待解锁的战斗咒文 */
-  hasPendingBattleSkillUnlock: () => boolean;
-  /** 当前可选择的技能树节点 id 列表 */
-  getSkillPickOptions: () => string[];
-  /** 重置全部进度 */
-  resetProgress: () => void;
+function mergeUniqueIds(existing: string[], additions: string[]): string[] {
+  if (additions.length === 0) return existing;
+  return Array.from(new Set([...existing, ...additions]));
 }
 
-/** 把当前可持久化字段抽成 PlayerState 并保存 */
-function persist(state: GameStore): PlayerState {
-  const snapshot: PlayerState = {
-    version: state.version,
-    classId: state.classId,
-    level: state.level,
-    exp: state.exp,
-    clearedStageIds: state.clearedStageIds,
-    learnedVocabIds: state.learnedVocabIds,
-    skillTreeUnlocked: state.skillTreeUnlocked,
-    unlockedSkillIds: state.unlockedSkillIds,
-    discoveredEncounterIds: state.discoveredEncounterIds,
-  };
-  savePlayerState(snapshot);
-  return snapshot;
+interface GameStore extends PlayerState {
+  hydrated: boolean;
+  hydrate: () => void;
+  /** 写入当前档位 + 全局图鉴 */
+  autosave: () => void;
+  /** 继续冒险：载入指定档位 */
+  continueFromSlot: (index: SaveSlotIndex) => void;
+  /** 新游戏：清空指定档位进度，保留图鉴 */
+  prepareNewGameSlot: (index: SaveSlotIndex) => void;
+  selectClass: (id: HeroClassId) => void;
+  completeStage: (stageId: string) => StageClearResult;
+  unlockBattleSkill: (skillId: string) => void;
+  discoverEncounter: (encounterId: string) => void;
+  unlockSkillNode: (nodeId: string) => void;
+  hasPendingSkillPick: () => boolean;
+  hasPendingBattleSkillUnlock: () => boolean;
+  getSkillPickOptions: () => string[];
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -69,17 +61,60 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   hydrate: () => {
     if (get().hydrated) return;
-    const saved = loadPlayerState();
-    set({ ...saved, hydrated: true });
+    const root = loadSaveRoot();
+    const idx = root.activeSlot;
+    const slot = idx !== null ? root.slots[idx]! : createEmptySlot();
+    set({ ...mergePlayerState(slot, root.codex, idx), hydrated: true });
+  },
+
+  autosave: () => {
+    const state = get();
+    const idx = state.activeSlotIndex;
+    if (idx === null) return;
+
+    const root = loadSaveRoot();
+    root.slots[idx] = slotFromPlayerState(state);
+    root.codex = codexFromPlayerState(state);
+    root.activeSlot = idx;
+    root.lastPlayedSlot = idx;
+    saveSaveRoot(root);
+  },
+
+  continueFromSlot: (index) => {
+    const root = loadSaveRoot();
+    const slot = root.slots[index]!;
+    if (!isSlotOccupied(slot)) return;
+
+    const merged = mergePlayerState(slot, root.codex, index);
+    set(merged);
+    root.activeSlot = index;
+    root.lastPlayedSlot = index;
+    root.slots[index] = slotFromPlayerState(merged);
+    root.codex = codexFromPlayerState(merged);
+    saveSaveRoot(root);
+  },
+
+  prepareNewGameSlot: (index) => {
+    const root = loadSaveRoot();
+    const empty = createEmptySlot();
+    const merged = mergePlayerState(empty, root.codex, index);
+    set(merged);
+    root.slots[index] = empty;
+    root.activeSlot = index;
+    root.lastPlayedSlot = index;
+    saveSaveRoot(root);
   },
 
   selectClass: (id) => {
+    const state = get();
     const starter = getStarterSkillId(id);
+    const starterIds = starter ? [starter] : [];
     set({
       classId: id,
-      unlockedSkillIds: starter ? [starter] : [],
+      unlockedSkillIds: starterIds,
+      discoveredSkillIds: mergeUniqueIds(state.discoveredSkillIds, starterIds),
     });
-    persist(get());
+    get().autosave();
   },
 
   completeStage: (stageId) => {
@@ -93,9 +128,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const stage = getStage(stageId);
     const vocabIds = stage?.vocab?.map((v) => v.id) ?? [];
-    const learned = Array.from(
-      new Set([...state.learnedVocabIds, ...vocabIds]),
-    );
+    const learned = mergeUniqueIds(state.learnedVocabIds, vocabIds);
 
     const expGained = firstClear ? EXP_PER_STAGE : 0;
     const exp = state.exp + expGained;
@@ -107,7 +140,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       exp,
       level: newLevel,
     });
-    persist(get());
+    get().autosave();
 
     return {
       firstClear,
@@ -124,7 +157,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({
       discoveredEncounterIds: [...state.discoveredEncounterIds, encounterId],
     });
-    persist(get());
+    get().autosave();
   },
 
   unlockBattleSkill: (skillId) => {
@@ -144,15 +177,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     );
     if (!unlockable || unlockable.id !== skillId) return;
 
-    set({ unlockedSkillIds: [...state.unlockedSkillIds, skillId] });
-    persist(get());
+    set({
+      unlockedSkillIds: [...state.unlockedSkillIds, skillId],
+      discoveredSkillIds: mergeUniqueIds(state.discoveredSkillIds, [skillId]),
+    });
+    get().autosave();
   },
 
   unlockSkillNode: (nodeId) => {
     const state = get();
     if (!nodeId || state.skillTreeUnlocked.includes(nodeId)) return;
     set({ skillTreeUnlocked: [...state.skillTreeUnlocked, nodeId] });
-    persist(get());
+    get().autosave();
   },
 
   hasPendingSkillPick: () => {
@@ -191,10 +227,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       state.skillTreeUnlocked,
     ).map((n) => n.id);
   },
-
-  resetProgress: () => {
-    const fresh = createDefaultPlayerState();
-    set({ ...fresh });
-    persist(get());
-  },
 }));
+
+/** 是否存在可继续的档位 */
+export function hasAnyOccupiedSlot(): boolean {
+  return loadSaveRoot().slots.some(isSlotOccupied);
+}

@@ -1,0 +1,81 @@
+{
+  "synthesis": {
+    "cfg_value": 2.5,
+    "inference_timesteps": 20
+  },
+  "skill_mode": "clone",
+  "skill_clone": {
+    "cfg_value": 2.0,
+    "inference_timesteps": 16
+  },
+  "persona": {
+    "keigo": "(A passionate young knight, bold and fiery male voice, firm heroic delivery with clear diction, confident but not shouting, intense dramatic Japanese anime style)",
+    "chuuni": "(A theatrical dark sorcerer, intense chuunibyou young male voice, brooding and grandiose, clear dramatic incantation, never shouting, dramatic Japanese anime style)",
+    "tameguchi": "(A cheeky confident teenage rogue, playful cool male voice, smirking and lively, casual but clear delivery, dramatic Japanese anime style)",
+    "bushi": "(A stern middle-aged samurai, deep resolute male voice, solemn bushido tone, measured and dignified, dramatic Japanese anime style)"
+  },
+  "class_persona": {
+    "knight": "keigo",
+    "mage": "chuuni",
+    "rogue": "tameguchi",
+    "samurai": "bushi"
+  },
+  "skill_overrides": {},
+  "class_preview": {
+    "knight": {
+      "skills": ["k-breeze", "k-dawn", "k-smite"]
+    },
+    "mage": {
+      "skills": ["m-gust", "m-orb", "m-storm"]
+    },
+    "rogue": {
+      "skills": ["r-quick", "r-stab", "r-shadow"]
+    },
+    "samurai": {
+      "skills": ["s-plain-wind", "s-iai", "s-wind"]
+    }
+  },
+  "preview": {
+    "class": "knight",
+    "skill_ids": ["k-breeze", "k-dawn", "k-smite"],
+    "variants": ["keigo-vd-heroic", "keigo-clone-from-anchor"]
+  },
+  "preview_variants": {
+    "keigo-vd-heroic": {
+      "label": "Voice Design·声线锚点（仅 sample 用）",
+      "mode": "voice_design",
+      "style": "keigo",
+      "persona": "(A passionate young knight, bold and fiery male voice, firm heroic delivery with clear diction, confident but not shouting, intense dramatic Japanese anime style)",
+      "cfg_value": 2.5,
+      "inference_timesteps": 20
+    },
+    "keigo-clone-from-anchor": {
+      "label": "克隆·统一声线（正式技能）",
+      "mode": "clone",
+      "style": "keigo",
+      "cfg_value": 2.0,
+      "inference_timesteps": 16
+    },
+    "chuuni-vd-default": {
+      "label": "Voice Design·魔法师锚点",
+      "mode": "voice_design",
+      "style": "chuuni",
+      "cfg_value": 2.5,
+      "inference_timesteps": 20
+    },
+    "tameguchi-vd-default": {
+      "label": "Voice Design·盗贼锚点",
+      "mode": "voice_design",
+      "style": "tameguchi",
+      "cfg_value": 2.4,
+      "inference_timesteps": 18
+    },
+    "bushi-vd-default": {
+      "label": "Voice Design·武士锚点",
+      "mode": "voice_design",
+      "style": "bushi",
+      "cfg_value": 2.3,
+      "inference_timesteps": 18
+    }
+  }
+}

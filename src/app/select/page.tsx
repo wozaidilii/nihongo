@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { HeroClassId } from "~/types";
 import { HERO_CLASSES } from "~/data/classes";
@@ -19,9 +19,16 @@ export default function SelectPage() {
   useGameReady();
   const { locale } = useLocale();
   const savedClassId = useGameStore((s) => s.classId);
+  const activeSlotIndex = useGameStore((s) => s.activeSlotIndex);
   const selectClass = useGameStore((s) => s.selectClass);
 
   const [picked, setPicked] = useState<HeroClassId | null>(savedClassId);
+
+  useEffect(() => {
+    if (activeSlotIndex === null) {
+      router.replace("/slots?mode=new");
+    }
+  }, [activeSlotIndex, router]);
 
   const handleSelect = (id: HeroClassId) => {
     setPicked(id);
@@ -49,7 +56,7 @@ export default function SelectPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {HERO_CLASSES.map((hero) => (
           <ClassCard
             key={hero.id}

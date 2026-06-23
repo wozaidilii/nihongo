@@ -90,7 +90,13 @@ for (const s of skills) {
 }
 
 if (errors > 0) {
-  console.error(`\n共 ${errors} 项未对齐，请运行 VoxCPM/.venv/bin/python scripts/generate_voices.py --skills-only`);
+  console.error(`\n共 ${errors} 项未对齐`);
+  console.error("补全缺失配音:");
+  console.error("  VoxCPM/.venv/bin/python scripts/generate_voices.py --samples-only");
+  console.error("  VoxCPM/.venv/bin/python scripts/generate_voices.py --skills-only --only-missing");
+  console.error("四职业示例:");
+  console.error("  VoxCPM/.venv/bin/python scripts/preview_all_classes.py");
+  console.error("参数配置: scripts/voice_config.json");
   process.exit(1);
 }
 console.log("\n全部对齐 ✓");

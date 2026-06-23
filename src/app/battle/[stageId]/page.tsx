@@ -61,6 +61,7 @@ export default function BattlePage() {
   const unlockedSkillIds = useGameStore((s) => s.unlockedSkillIds);
   const completeStage = useGameStore((s) => s.completeStage);
   const discoverEncounter = useGameStore((s) => s.discoverEncounter);
+  const autosave = useGameStore((s) => s.autosave);
 
   const stage = getStage(stageId);
   const hero = getHeroClass(classId);
@@ -284,6 +285,7 @@ export default function BattlePage() {
             setEnemySprite("death");
             setTimeout(() => {
               advanceEncounter();
+              autosave();
               setBusy(false);
             }, 500);
           }

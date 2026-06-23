@@ -19,20 +19,25 @@ export const messages = {
       ja: "詠唱勇者",
       en: "Chant Hero",
     } satisfies L,
-    subtitle: {
-      zh: "选职业 · 念咒文 · 放技能\n在像素冒险里学日语！",
-      ja: "職業を選び · 呪文を唱え · 技を放て\nピクセル冒険で日本語を学ぼう！",
-      en: "Pick a class · Chant spells · Unleash skills\nLearn Japanese in a pixel adventure!",
+    castleName: {
+      zh: "— 魔王城 —",
+      ja: "— 魔王城 —",
+      en: "— Demon Lord's Keep —",
     } satisfies L,
-    dragonLabel: {
-      zh: "影龙",
-      ja: "影のドラゴン",
-      en: "Shadow Dragon",
+    badge: {
+      zh: "魔王城",
+      ja: "魔王城",
+      en: "DEMON KEEP",
+    } satisfies L,
+    subtitle: {
+      zh: "魔王城的最深处，咒文与日语交织。\n选职业 · 念咒文 · 终结传说！",
+      ja: "魔王城の最深部、呪文と日本語が交わる。\n職業を選び · 呪文を唱え · 伝説を終わらせろ！",
+      en: "Deep in the demon keep, chants and Japanese intertwine.\nPick a class · Chant spells · End the legend!",
     } satisfies L,
     adventureBlink: {
-      zh: "▶ 开始冒险",
-      ja: "▶ ADVENTURE",
-      en: "▶ ADVENTURE",
+      zh: "▶ 魔王城へ",
+      ja: "▶ 魔王城へ",
+      en: "▶ TO THE KEEP",
     } satisfies L,
   },
   home: {
@@ -44,27 +49,69 @@ export const messages = {
     continueAdventure: {
       zh: "继续冒险",
       ja: "冒険を続ける",
-      en: "Continue",
+      en: "Continue Adventure",
     } satisfies L,
-    reselectClass: {
-      zh: "重选职业",
-      ja: "職業を選び直す",
-      en: "Change Class",
+    newGame: {
+      zh: "新的游戏",
+      ja: "新しいゲーム",
+      en: "New Game",
     } satisfies L,
-    newPlayerHint: {
-      zh: "选择职业开始冒险。不同职业学习不同的日语说话方式！",
-      ja: "職業を選んで冒険を始めよう。職業ごとに学ぶ日本語の話し方が違う！",
-      en: "Choose a class to begin. Each class teaches a different Japanese speech style!",
-    } satisfies L,
-    startAdventure: {
-      zh: "开始冒险",
-      ja: "冒険を始める",
-      en: "Start Adventure",
+    openCodex: {
+      zh: "图鉴",
+      ja: "図鑑",
+      en: "Codex",
     } satisfies L,
     browserTip: {
       zh: "建议使用 Chrome / Edge 以获得语音识别体验",
       ja: "音声認識には Chrome / Edge の利用を推奨します",
       en: "Use Chrome or Edge for the best speech recognition",
+    } satisfies L,
+  },
+  slots: {
+    continueTitle: {
+      zh: "选择存档继续冒险",
+      ja: "セーブデータを選んで続ける",
+      en: "Choose a save to continue",
+    } satisfies L,
+    newTitle: {
+      zh: "选择存档开始新游戏",
+      ja: "セーブデータを選んで新規開始",
+      en: "Choose a save slot for a new game",
+    } satisfies L,
+    slotLabel: {
+      zh: "存档 {n}",
+      ja: "スロット {n}",
+      en: "Save {n}",
+    } satisfies L,
+    empty: {
+      zh: "空档",
+      ja: "空き",
+      en: "Empty",
+    } satisfies L,
+    occupied: {
+      zh: "{name} · Lv.{level} · 已通关 {cleared} 关",
+      ja: "{name} · Lv.{level} · クリア {cleared}",
+      en: "{name} · Lv.{level} · {cleared} stages cleared",
+    } satisfies L,
+    lastSaved: {
+      zh: "上次存档：{time}",
+      ja: "最終保存：{time}",
+      en: "Last saved: {time}",
+    } satisfies L,
+    continueHint: {
+      zh: "无存档的档位无法继续",
+      ja: "データのないスロットは選べません",
+      en: "Empty slots cannot be continued",
+    } satisfies L,
+    overwriteConfirm: {
+      zh: "该档位已有进度，开始新游戏将覆盖此档（图鉴不会清空）。确定吗？",
+      ja: "このスロットにデータがあります。上書きします（図鑑は残ります）。よろしいですか？",
+      en: "This slot has progress. Starting anew will overwrite it (codex stays). Continue?",
+    } satisfies L,
+    backHome: {
+      zh: "返回标题",
+      ja: "タイトルへ",
+      en: "Back to title",
     } satisfies L,
   },
   common: {
@@ -187,9 +234,9 @@ export const messages = {
       en: "Adventure Codex",
     } satisfies L,
     subtitle: {
-      zh: "通关收集的词汇、咒文与魔物",
-      ja: "クリアで集めた語彙・呪文・魔物",
-      en: "Vocabulary, spells, and foes you've collected",
+      zh: "跨存档永久收集的词汇、咒文与魔物",
+      ja: "スロットをまたいで集めた語彙・呪文・魔物",
+      en: "Words, spells, and foes collected across all saves",
     } satisfies L,
     tabVocab: {
       zh: "词汇",

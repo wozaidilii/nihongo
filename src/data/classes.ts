@@ -40,6 +40,14 @@ export const SPEECH_STYLES: Record<SpeechStyleId, SpeechStyle> = {
 };
 
 /** 四个可选职业 */
+export const HERO_CLASS_IDS: HeroClassId[] = [
+  "knight",
+  "mage",
+  "rogue",
+  "samurai",
+];
+
+/** 四个可选职业 */
 export const HERO_CLASSES: HeroClass[] = [
   {
     id: "knight",

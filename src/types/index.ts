@@ -8,7 +8,11 @@
 export type SpeechStyleId = "keigo" | "chuuni" | "tameguchi" | "bushi";
 
 /** 勇者职业标识 */
-export type HeroClassId = "knight" | "mage" | "rogue" | "samurai";
+export type HeroClassId =
+  | "knight"
+  | "mage"
+  | "rogue"
+  | "samurai";
 
 /** 一种日语语体的描述：用于渲染台词风格与说明 */
 export interface SpeechStyle {
@@ -174,24 +178,64 @@ export interface Stage {
   vocab: Vocab[];
 }
 
-/** 玩家存档状态 */
+/** 存档槽位索引（共 3 档） */
+export type SaveSlotIndex = 0 | 1 | 2;
+
+export const SAVE_SLOT_COUNT = 3;
+
+/** 单档冒险进度（不含全局图鉴） */
+export interface SaveSlotData {
+  version: number;
+  classId: HeroClassId | null;
+  level: number;
+  exp: number;
+  clearedStageIds: string[];
+  skillTreeUnlocked: string[];
+  unlockedSkillIds: string[];
+  /** 最后写入时间戳 */
+  savedAt: number;
+}
+
+/** 全局图鉴（跨档位永久保留） */
+export interface GlobalCodex {
+  version: number;
+  learnedVocabIds: string[];
+  discoveredEncounterIds: string[];
+  /** 曾解锁/见过的咒文 id */
+  discoveredSkillIds: string[];
+}
+
+/** localStorage 根结构 */
+export interface SaveRoot {
+  version: number;
+  activeSlot: SaveSlotIndex | null;
+  lastPlayedSlot: SaveSlotIndex | null;
+  slots: SaveSlotData[];
+  codex: GlobalCodex;
+}
+
+/** 运行时玩家状态（当前档位 + 图鉴） */
 export interface PlayerState {
   /** 存档版本，便于迁移 */
   version: number;
+  /** 当前游玩的档位；未选档为 null */
+  activeSlotIndex: SaveSlotIndex | null;
   /** 已选职业，未选为 null */
   classId: HeroClassId | null;
   level: number;
   exp: number;
   /** 已通关的关卡 id */
   clearedStageIds: string[];
-  /** 已学会的词汇 id */
-  learnedVocabIds: string[];
   /** 已解锁的技能树节点 id */
   skillTreeUnlocked: string[];
-  /** 已解锁的战斗咒文 id（按职业进度） */
+  /** 已解锁的战斗咒文 id（当前档位） */
   unlockedSkillIds: string[];
-  /** 图鉴：已遭遇的敌人（遭遇战 id） */
+  /** 图鉴：已收录词汇 */
+  learnedVocabIds: string[];
+  /** 图鉴：已遭遇敌人 */
   discoveredEncounterIds: string[];
+  /** 图鉴：已见过咒文 */
+  discoveredSkillIds: string[];
 }
 
 /** 关卡通关结算快照（仅 UI 展示） */

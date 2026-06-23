@@ -35,6 +35,7 @@ export default function AdventurePage() {
   const ready = useGameReady();
   const { locale } = useLocale();
   const classId = useGameStore((s) => s.classId);
+  const activeSlotIndex = useGameStore((s) => s.activeSlotIndex);
   const level = useGameStore((s) => s.level);
   const exp = useGameStore((s) => s.exp);
   const clearedStageIds = useGameStore((s) => s.clearedStageIds);
@@ -50,6 +51,10 @@ export default function AdventurePage() {
   const hero = getHeroClass(classId);
   const style = getStyleForClass(classId);
   const branch = classId ? getChosenBranch(classId, skillTreeUnlocked) : null;
+
+  useEffect(() => {
+    if (ready && activeSlotIndex === null) router.replace("/slots?mode=continue");
+  }, [ready, activeSlotIndex, router]);
 
   useEffect(() => {
     if (ready && !classId) router.replace("/select");

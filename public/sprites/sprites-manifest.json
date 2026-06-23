@@ -826,6 +826,55 @@
         }
       }
     },
+    "demon_lord": {
+      "sheet": "/sprites/enemies/demon_lord.png",
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "sheetWidth": 960,
+      "sheetHeight": 768,
+      "scale": 1,
+      "flipX": false,
+      "animations": {
+        "idle": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 4
+        },
+        "attack": {
+          "row": 1,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "fps": 10
+        },
+        "hurt": {
+          "row": 2,
+          "frames": [
+            0
+          ],
+          "fps": 4
+        },
+        "death": {
+          "row": 3,
+          "frames": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fps": 6
+        }
+      }
+    },
     "dragon": {
       "sheet": "/sprites/enemies/dragon.png",
       "frameWidth": 174,

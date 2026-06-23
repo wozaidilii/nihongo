@@ -23,21 +23,22 @@
 | 平原魔蜂 / 毒蛇 / 蠕虫 / 魔眼 / 南瓜魔 / 食人花 | 同上 LPC Monsters 包 | CC-BY-SA 3.0 |
 | 蝙蝠魔 | 同上 `bat.png` | CC-BY-SA 3.0 |
 | 炎魔像 | [Golem walk/attack/die](https://opengameart.org/) by Stephen "Redshrike" Challener | OGA-BY 3.0 |
+| 魔王 | [LPC in-battle RPG sprites](https://opengameart.org/content/lpc-in-battle-rpg-sprites) Gnu Mage（Redshrike / Ben Potter） | CC-BY-SA 3.0 / GPL 3.0 |
 | 影龙 | [RPG Enemies: 11 Dragons](https://opengameart.org/content/rpg-enemies-11-dragons)（Redshrike 等）+ [Dragon idle animation](https://opengameart.org/content/dragon-idle-animation)（Scribe） | CC-BY-SA 3.0 / GPL 3.0 |
 
 敌人精灵生成：`scripts/build_lpc_enemies.py`（由 `build_lpc_sprites.py` 调用）
 
 ## 标题页魔王城
 
-可选横幅：`public/sprites/title/demon-castle.png`（由 LPC 城堡贴图调色生成）
+横幅：`public/sprites/title/demon-castle.png`（由 LPC 城堡贴图拼合生成）
 
-来源：[LPC Interior Castle Tiles](https://lpc.opengameart.org/content/lpc-interior-castle-tiles)（Lanea Zimmerman，CC-BY-SA 3.0 / GPL 3.0）
+来源：[Another LPC style castle](https://opengameart.org/content/another-lpc-style-castle)（theidiotmachine，CC-BY-SA 3.0）
 
 ```bash
-npm run build:title
+python3 scripts/build_title_art.py
 ```
 
-无位图时标题页回退为 CSS 像素城堡剪影。
+魔王精灵：`in-battle-sprites.png` Gnu Mage → `public/sprites/enemies/demon_lord.png`（见 `scripts/build_lpc_enemies.py`）
 
 影龙署名：Stephen "Redshrike" Challener、Surt（原设）、Daniel Stephens / Scribe（呼吸动画）
 

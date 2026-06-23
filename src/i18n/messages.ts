@@ -30,9 +30,19 @@ export const messages = {
       en: "DEMON KEEP",
     } satisfies L,
     subtitle: {
-      zh: "魔王城的最深处，咒文与日语交织。\n选职业 · 念咒文 · 终结传说！",
-      ja: "魔王城の最深部、呪文と日本語が交わる。\n職業を選び · 呪文を唱え · 伝説を終わらせろ！",
-      en: "Deep in the demon keep, chants and Japanese intertwine.\nPick a class · Chant spells · End the legend!",
+      zh: "魔王城的最深处，魔王静候于王座之前。\n选职业 · 念咒文 · 终结魔王的传说！",
+      ja: "魔王城の最深部、魔王が玉座で待ち受ける。\n職業を選び · 呪文を唱え · 魔王の伝説を終わらせろ！",
+      en: "Deep in the keep, the Demon Lord waits on his throne.\nPick a class · Chant spells · End the legend!",
+    } satisfies L,
+    finalBossTag: {
+      zh: "最终 BOSS",
+      ja: "ラスボス",
+      en: "FINAL BOSS",
+    } satisfies L,
+    finalBossName: {
+      zh: "魔王",
+      ja: "魔王",
+      en: "Demon Lord",
     } satisfies L,
     adventureBlink: {
       zh: "▶ 魔王城へ",

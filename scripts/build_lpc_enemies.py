@@ -26,6 +26,7 @@ DOWNLOADS: dict[str, str] = {
     "golem-walk.png": "https://opengameart.org/sites/default/files/golem-walk.png",
     "golem-atk.png": "https://opengameart.org/sites/default/files/golem-atk.png",
     "golem-die.png": "https://opengameart.org/sites/default/files/golem-die.png",
+    "in-battle-sprites.png": "https://opengameart.org/sites/default/files/in%20battle%20sprites%201.PNG",
 }
 
 
@@ -38,6 +39,7 @@ class GridEnemyConfig:
     anims: dict[str, tuple[int, int | None]] | None = None
     scale: float = 1.5
     flip: bool = True
+    rotate_180: bool = False
     fps: dict[str, int] | None = None
 
 
@@ -61,6 +63,135 @@ def ensure_assets() -> None:
             with zipfile.ZipFile(zip_path) as zf:
                 zf.extractall(TMP)
             print(f"[unzip] lpc-monsters -> {monsters_dir}")
+
+
+def pad_sprite_bottom(im: Image.Image, fw: int, fh: int) -> Image.Image:
+    """把不规则立绘居中贴入统一帧，脚底对齐底部。"""
+    canvas = Image.new("RGBA", (fw, fh), (0, 0, 0, 0))
+    bbox = im.getbbox()
+    if not bbox:
+        return canvas
+    tight = im.crop(bbox)
+    tw, th = tight.size
+    scale = min((fw - 8) / tw, (fh - 6) / th, 1.0)
+    if scale < 1.0:
+        tw = max(1, int(tw * scale))
+        th = max(1, int(th * scale))
+        tight = tight.resize((tw, th), Image.Resampling.NEAREST)
+    x = (fw - tw) // 2
+    y = fh - th - 2
+    canvas.paste(tight, (x, y), tight)
+    return canvas
+
+
+def remove_edge_white_background(im: Image.Image, threshold: int = 245) -> Image.Image:
+    """把源图边缘连通的白色背景转为透明，保留角色内部高光。"""
+    out = im.convert("RGBA")
+    w, h = out.size
+    px = out.load()
+    stack: list[tuple[int, int]] = []
+    seen: set[tuple[int, int]] = set()
+
+    for x in range(w):
+        stack.append((x, 0))
+        stack.append((x, h - 1))
+    for y in range(h):
+        stack.append((0, y))
+        stack.append((w - 1, y))
+
+    while stack:
+        x, y = stack.pop()
+        if (x, y) in seen or not (0 <= x < w and 0 <= y < h):
+            continue
+        seen.add((x, y))
+        r, g, b, a = px[x, y]
+        if a == 0 or r < threshold or g < threshold or b < threshold:
+            continue
+        px[x, y] = (r, g, b, 0)
+        stack.extend(((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)))
+
+    return out
+
+
+def shift_frame(im: Image.Image, dx: int, dy: int) -> Image.Image:
+    """在固定画布内平移精灵，用于待机动画与突进。"""
+    out = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    out.paste(im, (dx, dy), im)
+    return out
+
+
+def tint_hurt_flash(im: Image.Image) -> Image.Image:
+    """受击闪白"""
+    out = im.copy()
+    px = out.load()
+    w, h = out.size
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a < 16:
+                continue
+            px[x, y] = (
+                min(255, r + 80),
+                min(255, g + 50),
+                min(255, b + 50),
+                a,
+            )
+    return out
+
+
+def make_death_frames(base: Image.Image, count: int = 4) -> list[Image.Image]:
+    """静态立绘倒地：下沉 + 渐隐"""
+    frames: list[Image.Image] = []
+    for i in range(count):
+        fr = Image.new("RGBA", base.size, (0, 0, 0, 0))
+        sink = i * 4
+        alpha = max(0, 255 - i * 55)
+        layer = base.copy()
+        px = layer.load()
+        w, h = layer.size
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = px[x, y]
+                if a > 0:
+                    px[x, y] = (r, g, b, int(a * alpha / 255))
+        fr.paste(layer, (0, sink), layer)
+        frames.append(fr)
+    return frames
+
+
+def build_demon_lord_gnu_mage() -> tuple[Image.Image, dict]:
+    """魔王：LPC in-battle Gnu Mage，侧视持杖，朝左与勇者对峙。"""
+    path = os.path.join(TMP, "in-battle-sprites.png")
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"缺少魔王素材: {path}（请先下载 LPC in-battle RPG sprites）")
+
+    sheet = Image.open(path).convert("RGBA")
+    # Gnu Mage 位于原图右列、倒数第二行（见 OGA 说明）
+    crop = remove_edge_white_background(sheet.crop((168, 250, 254, 326)))
+    bbox = crop.getbbox()
+    if not bbox:
+        raise ValueError("无法从 in-battle-sprites 裁切 Gnu Mage")
+    raw = flip_frame(crop.crop(bbox))  # 原图朝右，翻转后朝左
+
+    fw = fh = 96
+    base = pad_sprite_bottom(raw, fw, fh)
+    idle = [shift_frame(base, 0, dy) for dy in (0, -1, 0, 1)]
+    attack = [shift_frame(base, dx, 0) for dx in (0, -3, -6, -3, 0)]
+    hurt = [tint_hurt_flash(base)]
+    death = make_death_frames(base, 4)
+
+    boss_scale = 2.0
+    anims_data = {
+        "idle": scale_frames(idle, boss_scale),
+        "attack": scale_frames(attack, boss_scale),
+        "hurt": scale_frames(hurt, boss_scale),
+        "death": scale_frames(death, boss_scale),
+    }
+    img, meta = pack_enemy_sheet(anims_data, "demon_lord", flip_x=False)
+    meta["animations"]["idle"]["fps"] = 4
+    meta["animations"]["attack"]["fps"] = 10
+    meta["animations"]["death"]["fps"] = 6
+    return img, meta
 
 
 def flip_frame(im: Image.Image) -> Image.Image:
@@ -190,7 +321,10 @@ def build_grid_enemy(cfg: GridEnemyConfig) -> tuple[Image.Image, dict]:
 
     anims_data: dict[str, list[Image.Image]] = {}
     for state, (row, max_f) in anims_map.items():
-        anims_data[state] = extract_row_frames(sheet, row, cfg.frame_w, cfg.frame_h, max_f)
+        frames = extract_row_frames(sheet, row, cfg.frame_w, cfg.frame_h, max_f)
+        if cfg.rotate_180:
+            frames = [f.rotate(180, expand=False) for f in frames]
+        anims_data[state] = frames
 
     if not anims_data.get("hurt"):
         anims_data["hurt"] = anims_data.get("idle", [])[:1]
@@ -419,6 +553,7 @@ def build_all_enemies() -> dict:
                 )
             ),
         ),
+        ("demon_lord", build_demon_lord_gnu_mage),
     ]
 
     for enemy_id, builder in builders:

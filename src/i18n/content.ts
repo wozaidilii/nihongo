@@ -90,9 +90,9 @@ const STAGE_INTRO: Record<string, L> = {
     en: "Evil eyes and pumpkin fiends haunt the ruined citadel. Break through with holy light and thunder!",
   },
   "demon-1": {
-    zh: "魔王城最深处，终极连战等待勇者。以全部咒文终结魔王影龙！",
-    ja: "魔王城の最深部、最終三連戦。全ての呪文で影龍を終わらせろ！",
-    en: "At the demon keep's depths, the final gauntlet awaits. Unleash every chant to slay the shadow dragon!",
+    zh: "魔王城最深处，终极连战等待勇者。以全部咒文终结魔王！",
+    ja: "魔王城の最深部、最終三連戦。全ての呪文で魔王を倒せ！",
+    en: "At the demon keep's depths, the final gauntlet awaits. Unleash every chant to slay the Demon Lord!",
   },
 };
 
@@ -111,7 +111,7 @@ const ENCOUNTER_NAME: Record<string, L> = {
   "castle-1-boss": { zh: "城塞番人", ja: "城塞の番人", en: "Citadel Warden" },
   "demon-1-e1": { zh: "巨大蠕虫", ja: "巨大蠕虫", en: "Colossal Worm" },
   "demon-1-e2": { zh: "食人花", ja: "食人花", en: "Man-Eater Bloom" },
-  "demon-1-boss": { zh: "魔王影龙", ja: "魔王の影龍", en: "Demon Shadow Dragon" },
+  "demon-1-boss": { zh: "魔王", ja: "魔王", en: "Demon Lord" },
 };
 
 const ELEMENT_LABEL: Record<Element, L> = {

@@ -264,9 +264,9 @@ export const STAGES: Stage[] = [
         id: "demon-1-boss",
         kind: "boss",
         enemy: {
-          name: "魔王の影龍",
-          sprite: "🐉",
-          spriteKey: "dragon",
+          name: "魔王",
+          sprite: "👹",
+          spriteKey: "demon_lord",
           hp: 150,
           attack: 22,
           element: "shadow",

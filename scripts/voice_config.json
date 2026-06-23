@@ -4,8 +4,20 @@
     "inference_timesteps": 20
   },
   "sample_overrides": {
+    "keigo": {
+      "cfg_value": 2.05,
+      "inference_timesteps": 18
+    },
+    "chuuni": {
+      "cfg_value": 2.15,
+      "inference_timesteps": 18
+    },
     "tameguchi": {
       "cfg_value": 2.0,
+      "inference_timesteps": 18
+    },
+    "bushi": {
+      "cfg_value": 2.05,
       "inference_timesteps": 18
     }
   },
@@ -14,11 +26,25 @@
     "cfg_value": 2.0,
     "inference_timesteps": 16
   },
+  "class_skill_overrides": {
+    "knight": {
+      "cfg_value": 1.85,
+      "inference_timesteps": 16
+    },
+    "mage": {
+      "cfg_value": 1.95,
+      "inference_timesteps": 16
+    },
+    "samurai": {
+      "cfg_value": 1.9,
+      "inference_timesteps": 16
+    }
+  },
   "persona": {
-    "keigo": "(A passionate young knight, bold and fiery male voice, firm heroic delivery with clear diction, confident but not shouting, intense dramatic Japanese anime style)",
-    "chuuni": "(A theatrical dark sorcerer, intense chuunibyou young male voice, brooding and grandiose, clear dramatic incantation, never shouting, dramatic Japanese anime style)",
+    "keigo": "(A calm young male knight voice, polite Japanese delivery, clear diction, steady heroic tone, warm and confident, natural human speech, no shouting, no growling, no exaggerated anime acting, no sound effects)",
+    "chuuni": "(A young male fantasy mage voice, mysterious but controlled, clear Japanese incantation, restrained dramatic tone, natural human speech, no shouting, no screaming, no growling, no sound effects)",
     "tameguchi": "(A confident young male rogue voice, casual Japanese delivery, clear diction, relaxed and cool, natural human speech, no laughter, no screaming, no growling, no sound effects, not theatrical)",
-    "bushi": "(A stern middle-aged samurai, deep resolute male voice, solemn bushido tone, measured and dignified, dramatic Japanese anime style)"
+    "bushi": "(A mature male samurai voice, low and steady, measured Japanese delivery, dignified and calm, natural human speech, no shouting, no growling, no sound effects)"
   },
   "class_persona": {
     "knight": "keigo",
@@ -51,23 +77,24 @@
       "label": "Voice Design·声线锚点（仅 sample 用）",
       "mode": "voice_design",
       "style": "keigo",
-      "persona": "(A passionate young knight, bold and fiery male voice, firm heroic delivery with clear diction, confident but not shouting, intense dramatic Japanese anime style)",
-      "cfg_value": 2.5,
-      "inference_timesteps": 20
+      "persona": "(A calm young male knight voice, polite Japanese delivery, clear diction, steady heroic tone, warm and confident, natural human speech, no shouting, no growling, no exaggerated anime acting, no sound effects)",
+      "cfg_value": 2.05,
+      "inference_timesteps": 18
     },
     "keigo-clone-from-anchor": {
       "label": "克隆·统一声线（正式技能）",
       "mode": "clone",
       "style": "keigo",
-      "cfg_value": 2.0,
+      "cfg_value": 1.85,
       "inference_timesteps": 16
     },
     "chuuni-vd-default": {
       "label": "Voice Design·魔法师锚点",
       "mode": "voice_design",
       "style": "chuuni",
-      "cfg_value": 2.5,
-      "inference_timesteps": 20
+      "persona": "(A young male fantasy mage voice, mysterious but controlled, clear Japanese incantation, restrained dramatic tone, natural human speech, no shouting, no screaming, no growling, no sound effects)",
+      "cfg_value": 2.15,
+      "inference_timesteps": 18
     },
     "tameguchi-vd-default": {
       "label": "Voice Design·盗贼锚点",
@@ -81,7 +108,8 @@
       "label": "Voice Design·武士锚点",
       "mode": "voice_design",
       "style": "bushi",
-      "cfg_value": 2.3,
+      "persona": "(A mature male samurai voice, low and steady, measured Japanese delivery, dignified and calm, natural human speech, no shouting, no growling, no sound effects)",
+      "cfg_value": 2.05,
       "inference_timesteps": 18
     }
   }

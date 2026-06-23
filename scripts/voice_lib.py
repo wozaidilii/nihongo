@@ -28,6 +28,7 @@ def load_config() -> dict[str, Any]:
     defaults: dict[str, Any] = {
         "synthesis": {"cfg_value": 2.0, "inference_timesteps": 16},
         "sample_overrides": {},
+        "class_skill_overrides": {},
         "persona": {},
         "class_persona": {
             "knight": "keigo",
@@ -185,6 +186,15 @@ def get_skill_override(
     return raw if isinstance(raw, dict) else {}
 
 
+def get_class_skill_override(config: dict[str, Any], class_id: str) -> dict[str, Any]:
+    """某职业所有技能的克隆参数覆盖；单技能 override 优先级更高。"""
+    overrides = config.get("class_skill_overrides", {})
+    if not isinstance(overrides, dict):
+        return {}
+    raw = overrides.get(class_id, {})
+    return raw if isinstance(raw, dict) else {}
+
+
 def build_skill_variant(
     config: dict[str, Any],
     class_id: str,
@@ -192,12 +202,15 @@ def build_skill_variant(
     style: str,
 ) -> dict[str, Any]:
     """合并全局 skill_mode 与单技能 override。"""
+    class_override = get_class_skill_override(config, class_id)
     override = get_skill_override(config, class_id, skill_id)
-    mode = override.get("mode") or config.get("skill_mode", "clone")
+    mode = override.get("mode") or class_override.get("mode") or config.get("skill_mode", "clone")
     variant: dict[str, Any] = {"mode": mode, "style": style}
     for key in ("persona", "cfg_value", "inference_timesteps"):
         if key in override:
             variant[key] = override[key]
+        elif key in class_override:
+            variant[key] = class_override[key]
     return variant
 
 

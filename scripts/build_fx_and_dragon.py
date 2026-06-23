@@ -59,16 +59,36 @@ def _circle_burst(draw: ImageDraw.ImageDraw, cx: int, cy: int, r: int, color: tu
     draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(*color, alpha))
 
 
+def _pixel_line(
+    draw: ImageDraw.ImageDraw,
+    xy: tuple[int, int, int, int],
+    fill: tuple[int, int, int, int],
+    width: int = 3,
+) -> None:
+    draw.line(xy, fill=fill, width=width)
+    draw.line((xy[0], xy[1] + width, xy[2], xy[3] + width), fill=(0, 0, 0, 90), width=1)
+
+
+def _spark(draw: ImageDraw.ImageDraw, cx: int, cy: int, r: int, color: tuple[int, int, int]) -> None:
+    draw.rectangle((cx - r, cy, cx + r, cy + 1), fill=(*color, 210))
+    draw.rectangle((cx, cy - r, cx + 1, cy + r), fill=(*color, 210))
+
+
 def gen_fire() -> list[Image.Image]:
     frames = []
-    colors = [(255, 90, 30), (255, 160, 40), (255, 220, 80)]
     for t in range(8):
-        img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+        img = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
-        for i, c in enumerate(colors):
-            r = 8 + t * 3 + i * 4
-            _circle_burst(d, 32, 40 - t, r, c, 200 - i * 40)
-        d.polygon([(32, 8), (24, 28 + t), (40, 28 + t)], fill=(255, 200, 60, 220))
+        cx = 20 + t * 7
+        cy = 50 - min(t, 4)
+        _circle_burst(d, cx - 10, cy + 5, 16, (110, 24, 12), 130)
+        _circle_burst(d, cx, cy, 18 + t // 2, (255, 88, 28), 220)
+        _circle_burst(d, cx + 6, cy - 3, 12, (255, 180, 46), 230)
+        d.polygon([(cx + 18, cy), (cx + 2, cy - 19), (cx + 6, cy + 16)], fill=(255, 230, 94, 230))
+        if t >= 5:
+            for r in (18, 27, 36):
+                d.rectangle((cx - r, cy - 2, cx + r, cy + 2), fill=(255, 180, 56, max(40, 170 - r * 3)))
+                d.rectangle((cx - 2, cy - r, cx + 2, cy + r), fill=(255, 220, 96, max(35, 150 - r * 3)))
         frames.append(img)
     return frames
 
@@ -76,25 +96,31 @@ def gen_fire() -> list[Image.Image]:
 def gen_holy() -> list[Image.Image]:
     frames = []
     for t in range(8):
-        img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+        img = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
-        _circle_burst(d, 32, 32, 10 + t * 2, (255, 255, 200), 180)
-        d.rectangle((28, 8, 36, 56), fill=(255, 255, 220, 120 + t * 10))
-        d.rectangle((8, 28, 56, 36), fill=(255, 255, 220, 120 + t * 10))
+        cx, cy = 48, 48
+        beam_alpha = 90 + t * 16
+        d.rectangle((42, 6, 54, 90), fill=(255, 248, 184, min(230, beam_alpha)))
+        d.rectangle((8, 42, 88, 54), fill=(255, 248, 184, min(220, beam_alpha)))
+        _circle_burst(d, cx, cy, 10 + t * 4, (255, 255, 210), max(70, 190 - t * 8))
+        _spark(d, 18 + t * 5, 24 + (t % 2) * 8, 5, (255, 245, 160))
+        _spark(d, 78 - t * 3, 70 - (t % 3) * 5, 4, (255, 255, 220))
         frames.append(img)
     return frames
 
 
 def gen_lightning() -> list[Image.Image]:
     frames = []
-    bolts = [(32, 4, 20, 50, 44, 50), (32, 4, 44, 50, 20, 50)]
     for t in range(8):
-        img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+        img = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
+        x = 20 + t * 7
+        points = [(x, 8), (x - 12, 38), (x + 2, 38), (x - 8, 84), (x + 24, 46), (x + 8, 46)]
         if t % 2 == 0:
-            d.polygon(bolts[0], fill=(180, 220, 255, 230))
-            d.polygon(bolts[1], fill=(120, 180, 255, 200))
-        _circle_burst(d, 32, 52, 6 + t, (200, 240, 255), 150)
+            d.line(points + [points[0]], fill=(50, 90, 140, 150), width=10, joint="curve")
+        d.polygon(points, fill=(180, 225, 255, 240))
+        d.polygon([(x + 4, 12), (x - 4, 36), (x + 8, 36), (x, 66), (x + 16, 42), (x + 6, 42)], fill=(255, 255, 190, 245))
+        _circle_burst(d, x + 8, 82, 5 + t, (160, 220, 255), 120)
         frames.append(img)
     return frames
 
@@ -102,40 +128,60 @@ def gen_lightning() -> list[Image.Image]:
 def gen_shadow() -> list[Image.Image]:
     frames = []
     for t in range(8):
-        img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+        img = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
-        _circle_burst(d, 32, 32, 12 + t * 3, (60, 20, 90), 160)
-        _circle_burst(d, 32, 32, 6 + t * 2, (120, 40, 160), 120)
+        cx = 18 + t * 7
+        cy = 48 + ((t % 3) - 1) * 3
+        _circle_burst(d, cx, cy, 18, (18, 8, 32), 210)
+        _circle_burst(d, cx + 2, cy - 2, 12, (94, 34, 126), 190)
+        d.arc((cx - 24, cy - 24, cx + 24, cy + 24), 220, 80, fill=(190, 72, 220, 190), width=4)
+        if t >= 5:
+            _circle_burst(d, cx, cy, 30 + (t - 5) * 7, (70, 16, 110), 75)
+            _spark(d, cx + 18, cy - 18, 5, (210, 92, 240))
         frames.append(img)
     return frames
 
 
 def gen_slash() -> list[Image.Image]:
     frames = []
-    for t in range(6):
-        img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    for t in range(8):
+        img = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
-        d.arc((4 + t * 4, 8, 60, 56), 300, 60, fill=(220, 240, 255, 220), width=4)
+        offset = t * 4
+        d.arc((8 + offset, 8, 88 + offset, 88), 210, 326, fill=(35, 46, 72, 150), width=10)
+        d.arc((6 + offset, 6, 90 + offset, 90), 210, 326, fill=(220, 246, 255, 240), width=5)
+        d.arc((18 + offset, 18, 78 + offset, 78), 210, 326, fill=(115, 185, 255, 210), width=3)
+        if t >= 4:
+            _spark(d, 70, 32 + (t % 2) * 10, 5, (255, 240, 160))
         frames.append(img)
     return frames
 
 
 def gen_thrust() -> list[Image.Image]:
     frames = []
-    for t in range(6):
-        img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    for t in range(8):
+        img = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
-        d.polygon([(8 + t * 6, 30), (56, 26), (56, 38)], fill=(200, 220, 255, 220))
+        x = 10 + t * 8
+        _pixel_line(d, (x, 48, 88, 48), (210, 230, 255, 235), width=5)
+        d.polygon([(88, 48), (70, 38), (70, 58)], fill=(245, 250, 255, 240))
+        d.polygon([(88, 48), (76, 43), (76, 53)], fill=(96, 170, 255, 210))
+        _spark(d, min(88, x + 38), 48, 4 + t // 2, (220, 245, 255))
         frames.append(img)
     return frames
 
 
 def gen_dagger() -> list[Image.Image]:
     frames = []
-    for t in range(6):
-        img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    for t in range(8):
+        img = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
-        d.line((12 + t * 4, 44 - t * 2, 48, 20), fill=(180, 255, 200, 230), width=3)
+        x = 12 + t * 8
+        d.polygon([(x, 60), (x + 36, 22), (x + 44, 30), (x + 8, 68)], fill=(38, 80, 66, 160))
+        d.polygon([(x + 6, 58), (x + 38, 26), (x + 42, 30), (x + 10, 62)], fill=(190, 255, 220, 235))
+        d.rectangle((x + 1, 62, x + 16, 68), fill=(80, 48, 30, 220))
+        if t >= 4:
+            _spark(d, 74, 30, 5, (170, 255, 200))
         frames.append(img)
     return frames
 

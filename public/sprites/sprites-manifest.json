@@ -919,5 +919,175 @@
         }
       }
     }
+  },
+  "fx": {
+    "fire": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/fire.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "sheetWidth": 768,
+      "sheetHeight": 96,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "holy": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/holy.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "sheetWidth": 768,
+      "sheetHeight": 96,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "lightning": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/lightning.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "sheetWidth": 768,
+      "sheetHeight": 96,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "shadow": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/shadow.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "sheetWidth": 768,
+      "sheetHeight": 96,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "slash": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/slash.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "sheetWidth": 768,
+      "sheetHeight": 96,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "thrust": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/thrust.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "sheetWidth": 768,
+      "sheetHeight": 96,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    },
+    "dagger": {
+      "scale": 1.5,
+      "sheet": "/sprites/fx/dagger.png",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "sheetWidth": 768,
+      "sheetHeight": 96,
+      "animations": {
+        "play": {
+          "row": 0,
+          "frames": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "fps": 12
+        }
+      }
+    }
   }
 }

@@ -219,6 +219,318 @@
   animation: castPulse 700ms steps(4) infinite;
 }
 
+/* ===== 侧视战斗舞台 ===== */
+.battle-stage {
+  min-height: 190px;
+  background:
+    linear-gradient(180deg, rgba(255, 232, 160, 0.08) 0%, transparent 42%),
+    linear-gradient(180deg, transparent 62%, rgba(20, 12, 28, 0.35) 63%, rgba(20, 12, 28, 0.15) 100%),
+    var(--color-rpg-9);
+}
+
+.battle-stage::before {
+  content: "";
+  position: absolute;
+  inset: auto 7% 56px;
+  height: 12px;
+  background:
+    linear-gradient(90deg, transparent 0 8px, rgba(0, 0, 0, 0.18) 8px 16px),
+    rgba(0, 0, 0, 0.18);
+  image-rendering: pixelated;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.battle-combatant {
+  position: relative;
+  z-index: 2;
+}
+
+.battle-sprite-wrap {
+  filter: drop-shadow(0 7px 0 rgba(0, 0, 0, 0.22));
+}
+
+.battle-hero-sprite {
+  margin-left: -0.5rem;
+}
+
+.battle-enemy-sprite {
+  margin-right: -0.5rem;
+}
+
+@keyframes heroAttackStep {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  42% {
+    transform: translateX(34px) translateY(-3px);
+  }
+  58% {
+    transform: translateX(42px) translateY(0);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+.anim-hero-attack {
+  animation: heroAttackStep 520ms steps(5) 1;
+}
+
+@keyframes enemyAttackStep {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  45% {
+    transform: translateX(-30px) translateY(-2px);
+  }
+  62% {
+    transform: translateX(-40px) translateY(0);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+.anim-enemy-attack {
+  animation: enemyAttackStep 560ms steps(5) 1;
+}
+
+@keyframes heroHurtStep {
+  0% {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+  35% {
+    transform: translateX(-16px);
+    filter: brightness(2.2) saturate(0.4);
+  }
+  100% {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+}
+
+.anim-hero-hurt {
+  animation: heroHurtStep 420ms steps(4) 1;
+}
+
+@keyframes enemyHurtStep {
+  0% {
+    transform: translateX(0);
+  }
+  35% {
+    transform: translateX(16px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.anim-enemy-hurt {
+  animation: enemyHurtStep 420ms steps(4) 1;
+}
+
+.battle-fx {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+
+.battle-fx-sprite {
+  position: absolute;
+  left: 18%;
+  top: 43%;
+  transform: translate(-50%, -50%);
+  animation: battleFxTravel 680ms steps(8) forwards;
+  filter: drop-shadow(0 0 6px rgba(255, 240, 180, 0.45));
+}
+
+.battle-fx-impact {
+  position: absolute;
+  left: 76%;
+  top: 43%;
+  width: 72px;
+  height: 72px;
+  transform: translate(-50%, -50%) scale(0.4);
+  border: 4px solid rgba(255, 250, 190, 0.95);
+  box-shadow:
+    0 0 0 4px rgba(255, 130, 60, 0.55),
+    0 0 0 10px rgba(255, 255, 255, 0.12);
+  opacity: 0;
+  image-rendering: pixelated;
+  animation: battleFxImpact 680ms steps(6) forwards;
+}
+
+.battle-fx-trail {
+  position: absolute;
+  left: 24%;
+  right: 27%;
+  top: 43%;
+  height: 6px;
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.76), transparent);
+  opacity: 0;
+  animation: battleFxTrail 680ms steps(8) forwards;
+}
+
+.battle-fx-slash .battle-fx-sprite,
+.battle-fx-thrust .battle-fx-sprite,
+.battle-fx-dagger .battle-fx-sprite {
+  animation-duration: 520ms;
+}
+
+.battle-fx-slash .battle-fx-impact,
+.battle-fx-thrust .battle-fx-impact,
+.battle-fx-dagger .battle-fx-impact,
+.battle-fx-slash .battle-fx-trail,
+.battle-fx-thrust .battle-fx-trail,
+.battle-fx-dagger .battle-fx-trail {
+  animation-duration: 520ms;
+}
+
+.battle-fx-fire .battle-fx-impact {
+  border-color: rgba(255, 228, 96, 0.95);
+  box-shadow:
+    0 0 0 4px rgba(255, 88, 28, 0.65),
+    0 0 0 12px rgba(120, 32, 12, 0.28);
+}
+
+.battle-fx-lightning .battle-fx-impact {
+  border-color: rgba(190, 230, 255, 0.95);
+  box-shadow:
+    0 0 0 4px rgba(76, 142, 255, 0.62),
+    0 0 0 12px rgba(210, 245, 255, 0.22);
+}
+
+.battle-fx-holy .battle-fx-impact {
+  border-color: rgba(255, 255, 210, 0.98);
+  box-shadow:
+    0 0 0 4px rgba(255, 222, 92, 0.65),
+    0 0 0 14px rgba(255, 255, 220, 0.25);
+}
+
+.battle-fx-shadow .battle-fx-impact {
+  border-color: rgba(210, 98, 235, 0.95);
+  box-shadow:
+    0 0 0 4px rgba(80, 22, 128, 0.7),
+    0 0 0 14px rgba(30, 8, 60, 0.35);
+}
+
+@keyframes battleFxTravel {
+  0% {
+    left: 20%;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.72);
+  }
+  15% {
+    opacity: 1;
+  }
+  78% {
+    left: 73%;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    left: 76%;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes battleFxImpact {
+  0%,
+  58% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+  72% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.35);
+  }
+}
+
+@keyframes battleFxTrail {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) scaleX(0);
+  }
+  22% {
+    opacity: 0.8;
+    transform: translateY(-50%) scaleX(0.35);
+  }
+  70% {
+    opacity: 0.55;
+    transform: translateY(-50%) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) scaleX(1);
+  }
+}
+
+@media (min-width: 640px) {
+  .battle-stage {
+    min-height: 230px;
+  }
+
+  .battle-hero-sprite {
+    margin-left: 0;
+  }
+
+  .battle-enemy-sprite {
+    margin-right: 0;
+  }
+
+  @keyframes heroAttackStep {
+    0% {
+      transform: translateX(0) translateY(0);
+    }
+    42% {
+      transform: translateX(54px) translateY(-4px);
+    }
+    58% {
+      transform: translateX(66px) translateY(0);
+    }
+    100% {
+      transform: translateX(0) translateY(0);
+    }
+  }
+
+  @keyframes enemyAttackStep {
+    0% {
+      transform: translateX(0) translateY(0);
+    }
+    45% {
+      transform: translateX(-48px) translateY(-3px);
+    }
+    62% {
+      transform: translateX(-60px) translateY(0);
+    }
+    100% {
+      transform: translateX(0) translateY(0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-hero-attack,
+  .anim-enemy-attack,
+  .anim-hero-hurt,
+  .anim-enemy-hurt,
+  .battle-fx-sprite,
+  .battle-fx-impact,
+  .battle-fx-trail {
+    animation-duration: 1ms;
+  }
+}
+
 /* ===== 标题页魔王城封面 ===== */
 .title-cover {
   min-height: 420px;

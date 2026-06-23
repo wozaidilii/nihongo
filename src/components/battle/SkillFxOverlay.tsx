@@ -35,15 +35,17 @@ export function SkillFxOverlay({ fxKey, triggerKey, className = "" }: SkillFxOve
   if (!def || !visible) return null;
 
   return (
-    <span
-      className={`pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 ${className}`}
-    >
-      <PixelAnimator
-        def={def}
-        state="play"
-        playing={playing}
-        onComplete={() => setVisible(false)}
-      />
+    <span className={`battle-fx battle-fx-${fxKey} ${className}`} aria-hidden="true">
+      <span className="battle-fx-trail" />
+      <span className="battle-fx-sprite">
+        <PixelAnimator
+          def={def}
+          state="play"
+          playing={playing}
+          onComplete={() => setVisible(false)}
+        />
+      </span>
+      <span className="battle-fx-impact" />
     </span>
   );
 }

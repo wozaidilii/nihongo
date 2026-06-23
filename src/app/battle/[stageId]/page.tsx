@@ -202,7 +202,8 @@ export default function BattlePage() {
 
     setEnemySprite("attack");
     setHeroSprite("hurt");
-    setHeroAnim("anim-shake");
+    setEnemyAnim("anim-enemy-attack");
+    setHeroAnim("anim-hero-hurt anim-shake");
     setFeedback(
       formatMessage(t(messages.battle.enemyAttack, locale), {
         reason,
@@ -215,6 +216,7 @@ export default function BattlePage() {
       const next = Math.max(0, prev - dmg);
       setTimeout(() => {
         setHeroAnim("");
+        setEnemyAnim("");
         setHeroSprite("idle");
         setEnemySprite("idle");
         if (next <= 0) {
@@ -247,9 +249,10 @@ export default function BattlePage() {
     if (cast && damage > 0) {
       setHeroSprite("attack");
       setEnemySprite("hurt");
+      setHeroAnim("anim-hero-attack");
       setFxTrigger((k) => k + 1);
       const nextEnemyHp = Math.max(0, enemyHp - damage);
-      setEnemyAnim("anim-shake anim-flash");
+      setEnemyAnim("anim-enemy-hurt anim-shake anim-flash");
       pushFloat(damage, crit || matchup.result === "super");
       const powerPct = Math.round(powerScaleFromAccuracy(result.accuracy) * 100);
       const powerNote =
@@ -273,6 +276,7 @@ export default function BattlePage() {
 
       setTimeout(() => {
         setEnemyAnim("");
+        setHeroAnim("");
         setHeroSprite("idle");
         if (nextEnemyHp <= 0) {
           if (encounterIndex >= totalEncounters - 1) {
@@ -377,10 +381,10 @@ export default function BattlePage() {
             <>
               <PixelPanel
                 tone="dialog"
-                className="relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-0.5 px-2 py-3 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:p-5"
+                className="battle-stage relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-0.5 overflow-hidden px-2 py-3 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:p-5"
               >
-                <div className="flex min-w-0 flex-col items-center gap-1 sm:gap-2">
-                  <div className={`origin-bottom scale-[0.72] sm:scale-100 ${heroAnim}`}>
+                <div className="battle-combatant battle-combatant-hero flex min-w-0 flex-col items-center gap-1 sm:gap-2">
+                  <div className={`battle-sprite-wrap battle-hero-sprite origin-bottom scale-[0.72] sm:scale-100 ${heroAnim}`}>
                     <CharacterSprite
                       kind="hero"
                       id={hero.spriteKey}
@@ -400,8 +404,8 @@ export default function BattlePage() {
                   {t(messages.common.vs, locale)}
                 </span>
 
-                <div className="relative flex min-w-0 flex-col items-center gap-1 sm:gap-2">
-                  <div className={`relative origin-bottom scale-[0.72] sm:scale-100 ${enemyAnim}`}>
+                <div className="battle-combatant battle-combatant-enemy relative flex min-w-0 flex-col items-center gap-1 sm:gap-2">
+                  <div className={`battle-sprite-wrap battle-enemy-sprite relative origin-bottom scale-[0.72] sm:scale-100 ${enemyAnim}`}>
                     <CharacterSprite
                       kind="enemy"
                       id={enemy.spriteKey}
@@ -411,9 +415,6 @@ export default function BattlePage() {
                       bob={enemySprite === "idle" && !busy}
                       label={enemyLabel}
                     />
-                    {currentSkill && (
-                      <SkillFxOverlay fxKey={currentSkill.fxKey} triggerKey={fxTrigger} />
-                    )}
                   </div>
                   <div className="w-[4.75rem] sm:w-28">
                     <HpBar
@@ -439,6 +440,9 @@ export default function BattlePage() {
                     ))}
                   </div>
                 </div>
+                {currentSkill && (
+                  <SkillFxOverlay fxKey={currentSkill.fxKey} triggerKey={fxTrigger} />
+                )}
               </PixelPanel>
 
               <ElementBadge

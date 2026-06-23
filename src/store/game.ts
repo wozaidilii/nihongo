@@ -7,6 +7,7 @@ import {
   loadPlayerState,
   savePlayerState,
 } from "~/lib/storage";
+import { getAvailableSkillPicks } from "~/data/skillTree";
 
 /** 每通一关获得的经验 */
 const EXP_PER_STAGE = 100;
@@ -22,6 +23,12 @@ interface GameStore extends PlayerState {
   selectClass: (id: HeroClassId) => void;
   /** 通关结算：记录通关、加经验、记录所学词 */
   completeStage: (stageId: string, vocabIds: string[]) => void;
+  /** 解锁技能树节点 */
+  unlockSkillNode: (nodeId: string) => void;
+  /** 是否还有待选技能点 */
+  hasPendingSkillPick: () => boolean;
+  /** 当前可选择的技能树节点 id 列表 */
+  getSkillPickOptions: () => string[];
   /** 重置全部进度 */
   resetProgress: () => void;
 }
@@ -35,6 +42,7 @@ function persist(state: GameStore): PlayerState {
     exp: state.exp,
     clearedStageIds: state.clearedStageIds,
     learnedVocabIds: state.learnedVocabIds,
+    skillTreeUnlocked: state.skillTreeUnlocked,
   };
   savePlayerState(snapshot);
   return snapshot;
@@ -65,7 +73,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       new Set([...state.learnedVocabIds, ...(vocabIds ?? [])]),
     );
 
-    // 仅首次通关给经验，避免刷关
     const firstClear = !state.clearedStageIds.includes(stageId);
     const exp = state.exp + (firstClear ? EXP_PER_STAGE : 0);
     const level = Math.max(1, Math.floor(exp / EXP_PER_LEVEL) + 1);
@@ -77,6 +84,33 @@ export const useGameStore = create<GameStore>((set, get) => ({
       level,
     });
     persist(get());
+  },
+
+  unlockSkillNode: (nodeId) => {
+    const state = get();
+    if (!nodeId || state.skillTreeUnlocked.includes(nodeId)) return;
+    set({ skillTreeUnlocked: [...state.skillTreeUnlocked, nodeId] });
+    persist(get());
+  },
+
+  hasPendingSkillPick: () => {
+    const state = get();
+    if (!state.classId) return false;
+    return getAvailableSkillPicks(
+      state.classId,
+      state.level,
+      state.skillTreeUnlocked,
+    ).length > 0;
+  },
+
+  getSkillPickOptions: () => {
+    const state = get();
+    if (!state.classId) return [];
+    return getAvailableSkillPicks(
+      state.classId,
+      state.level,
+      state.skillTreeUnlocked,
+    ).map((n) => n.id);
   },
 
   resetProgress: () => {

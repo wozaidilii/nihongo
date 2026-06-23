@@ -1,4 +1,5 @@
 import type { HeroClassId, Skill } from "~/types";
+import { getAggregatedModifiers } from "~/data/skillTree";
 
 /**
  * 各职业专属技能：同一关卡不同职业咒文、特效、伤害均不同。
@@ -8,30 +9,30 @@ export const CLASS_SKILLS: Record<HeroClassId, Record<string, Skill[]>> = {
   knight: {
     "forest-1": [
       {
-        id: "k-shield",
-        classId: "knight",
-        stageId: "forest-1",
-        nameJa: "聖盾の構え",
-        nameZh: "圣盾之姿",
-        incantation: "盾よ、我を護れ",
-        reading: "たてよ われをまもれ",
-        romaji: "tateyo, ware o mamore",
-        baseDamage: 30,
-        zh: "以圣盾护佑自身，再以光刃斩敌！",
-        fxKey: "holy",
-      },
-      {
         id: "k-smite",
         classId: "knight",
         stageId: "forest-1",
-        nameJa: "審判の一閃",
-        nameZh: "审判一闪",
+        nameJa: "斬撃",
+        nameZh: "斩击",
         incantation: "正道の光よ、裁け",
         reading: "せいどうのひかりよ さばけ",
         romaji: "seidou no hikari yo, sabake",
-        baseDamage: 36,
-        zh: "以正义之光审判邪恶！",
+        baseDamage: 32,
+        zh: "以正义之光斩击敌人！",
         fxKey: "slash",
+      },
+      {
+        id: "k-shield",
+        classId: "knight",
+        stageId: "forest-1",
+        nameJa: "防御",
+        nameZh: "防御",
+        incantation: "盾よ、我を護れ",
+        reading: "たてよ われをまもれ",
+        romaji: "tateyo, ware o mamore",
+        baseDamage: 28,
+        zh: "以圣盾护佑，再以光刃反击！",
+        fxKey: "holy",
       },
     ],
     "cave-1": [
@@ -69,27 +70,27 @@ export const CLASS_SKILLS: Record<HeroClassId, Record<string, Skill[]>> = {
         id: "m-orb",
         classId: "mage",
         stageId: "forest-1",
-        nameJa: "闇黒球",
-        nameZh: "暗黑球",
-        incantation: "我が左手に、闇黒の球",
-        reading: "わがひだりてに あんこくのたま",
-        romaji: "waga hidarite ni, ankoku no tama",
-        baseDamage: 28,
-        zh: "在左手中凝聚漆黑暗黑球！",
-        fxKey: "shadow",
+        nameJa: "火球",
+        nameZh: "火球",
+        incantation: "燃えよ、紅き炎",
+        reading: "もえよ あかきほのお",
+        romaji: "moeyo, akaki honoo",
+        baseDamage: 30,
+        zh: "凝聚火焰，射出火球！",
+        fxKey: "fire",
       },
       {
         id: "m-whisper",
         classId: "mage",
         stageId: "forest-1",
-        nameJa: "禁呪の囁き",
-        nameZh: "禁咒低语",
-        incantation: "禁じられた言霊よ、起きよ",
-        reading: "きんじられたことだまよ おきよ",
-        romaji: "kinjirareta kotodama yo, okiyo",
-        baseDamage: 34,
-        zh: "唤醒被封印的言灵之力！",
-        fxKey: "fire",
+        nameJa: "暗影",
+        nameZh: "暗影",
+        incantation: "闇よ、我が呼び声に応えよ",
+        reading: "やみよ わがよびごえにおうえよ",
+        romaji: "yami yo, waga yobigoe ni oue yo",
+        baseDamage: 32,
+        zh: "呼唤暗影，侵蚀敌人！",
+        fxKey: "shadow",
       },
     ],
     "cave-1": [
@@ -124,30 +125,30 @@ export const CLASS_SKILLS: Record<HeroClassId, Record<string, Skill[]>> = {
   rogue: {
     "forest-1": [
       {
-        id: "r-shadow",
-        classId: "rogue",
-        stageId: "forest-1",
-        nameJa: "影追い",
-        nameZh: "影追",
-        incantation: "影に乗って、いくぜ",
-        reading: "かげにのって いくぜ",
-        romaji: "kage ni notte, iku ze",
-        baseDamage: 30,
-        zh: "借影而行，迅捷一击！",
-        fxKey: "shadow",
-      },
-      {
         id: "r-stab",
         classId: "rogue",
         stageId: "forest-1",
-        nameJa: "背割れ",
-        nameZh: "背刺",
+        nameJa: "突刺",
+        nameZh: "突刺",
         incantation: "背割れ、一刺しだぜ",
         reading: "せわれ いっとしだぜ",
         romaji: "seware, hitoshi da ze",
-        baseDamage: 36,
-        zh: "背刺一式，从背后一刀！",
+        baseDamage: 32,
+        zh: "从背后突刺，一击必杀！",
         fxKey: "dagger",
+      },
+      {
+        id: "r-shadow",
+        classId: "rogue",
+        stageId: "forest-1",
+        nameJa: "影步",
+        nameZh: "影步",
+        incantation: "影に乗って、いくぜ",
+        reading: "かげにのって いくぜ",
+        romaji: "kage ni notte, iku ze",
+        baseDamage: 28,
+        zh: "借影而行，迅捷一击！",
+        fxKey: "shadow",
       },
     ],
     "cave-1": [
@@ -182,29 +183,29 @@ export const CLASS_SKILLS: Record<HeroClassId, Record<string, Skill[]>> = {
   samurai: {
     "forest-1": [
       {
-        id: "s-iai",
-        classId: "samurai",
-        stageId: "forest-1",
-        nameJa: "居合抜刀",
-        nameZh: "居合拔刀",
-        incantation: "拙者、居合にて斬るでござる",
-        reading: "せっしゃ いあいにてきるでござる",
-        romaji: "sessha, iai nite kiru de gozaru",
-        baseDamage: 32,
-        zh: "以居合之术，一刀两断！",
-        fxKey: "slash",
-      },
-      {
         id: "s-wind",
         classId: "samurai",
         stageId: "forest-1",
-        nameJa: "風斬",
-        nameZh: "风斩",
+        nameJa: "斬撃",
+        nameZh: "斩击",
         incantation: "風よ、刃となれでござる",
         reading: "かぜよ はとなれでござる",
         romaji: "kaze yo, ha to nare de gozaru",
-        baseDamage: 38,
+        baseDamage: 30,
         zh: "化风为刃，斩破敌阵！",
+        fxKey: "slash",
+      },
+      {
+        id: "s-iai",
+        classId: "samurai",
+        stageId: "forest-1",
+        nameJa: "居合",
+        nameZh: "居合",
+        incantation: "拙者、居合にて斬るでござる",
+        reading: "せっしゃ いあいにてきるでござる",
+        romaji: "sessha, iai nite kiru de gozaru",
+        baseDamage: 34,
+        zh: "以居合之术，一刀两断！",
         fxKey: "slash",
       },
     ],
@@ -246,4 +247,27 @@ export function getSkillsForStage(
 ): Skill[] {
   if (!stageId || !classId) return [];
   return CLASS_SKILLS[classId]?.[stageId] ?? [];
+}
+
+/** 应用技能树加成后的战斗技能列表 */
+export function getBattleSkills(
+  stageId: string | null | undefined,
+  classId: HeroClassId | null | undefined,
+  unlockedNodes: string[] = [],
+): Skill[] {
+  const base = getSkillsForStage(stageId, classId);
+  if (!classId || base.length === 0) return base;
+
+  const mods = getAggregatedModifiers(classId, unlockedNodes);
+  const globalMul = mods.damageMul ?? 1;
+
+  return base.map((skill) => {
+    const skillMul = mods.skillDamageMul?.[skill.id] ?? 1;
+    const mul = globalMul * skillMul;
+    if (mul === 1) return skill;
+    return {
+      ...skill,
+      baseDamage: Math.max(1, Math.round(skill.baseDamage * mul)),
+    };
+  });
 }

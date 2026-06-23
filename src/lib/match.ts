@@ -58,6 +58,19 @@ const ASR_KANA_ALIASES: Record<string, string> = {
   為て: "して",
   御: "ご",
   御座: "ござ",
+  燃えよ: "もえよ",
+  紅き: "あかき",
+  炎: "ほのお",
+  闇: "やみ",
+  応えよ: "おうえよ",
+  背割れ: "せわれ",
+  一刺し: "いっとし",
+  居合: "いあい",
+  拙者: "せっしゃ",
+  風: "かぜ",
+  刃: "は",
+  裁け: "さばけ",
+  護れ: "まもれ",
 };
 
 /** 将识别结果里的常见汉字写法替换成假名 */
@@ -222,18 +235,91 @@ export function scoreSkillCast(
   heard: string | null | undefined,
   incantation: string | null | undefined,
   reading: string | null | undefined,
+  options?: { stageId?: string },
 ): number {
+  return scoreSkillCastDetailed(heard, incantation, reading, options).accuracy;
+}
+
+export type CastMatchPath =
+  | "incantation"
+  | "incantation_alias"
+  | "reading_aligned"
+  | "reading_direct"
+  | "reading_core";
+
+export interface CastScoreDetail {
+  accuracy: number;
+  matchPath: CastMatchPath;
+}
+
+/** 第一关短咒文：取假名前 60% 作为核心片段，降低入门难度 */
+function coreReadingFragment(reading: string): string {
+  const n = normalizeJa(reading);
+  if (!n) return "";
+  const len = Math.max(2, Math.ceil(n.length * 0.6));
+  return n.slice(0, len);
+}
+
+/**
+ * 技能咏唱详细评分（含匹配路径，供 UI 提示）。
+ */
+export function scoreSkillCastDetailed(
+  heard: string | null | undefined,
+  incantation: string | null | undefined,
+  reading: string | null | undefined,
+  options?: { stageId?: string },
+): CastScoreDetail {
   const inc = incantation ?? "";
   const read = reading ?? "";
   const aligned = heardToReadingForm(heard ?? "", inc, read);
+  const coreRead = coreReadingFragment(read);
 
-  const scores = [
-    scoreReading(heard, inc),
-    scoreReading(applyAsrAliases(normalizeJa(heard)), inc),
-    scoreReading(aligned, read),
-    scoreReading(heard, read),
+  const candidates: Array<{ score: number; path: CastMatchPath }> = [
+    { score: scoreReading(heard, inc), path: "incantation" },
+    {
+      score: scoreReading(applyAsrAliases(normalizeJa(heard)), inc),
+      path: "incantation_alias",
+    },
+    { score: scoreReading(aligned, read), path: "reading_aligned" },
+    { score: scoreReading(heard, read), path: "reading_direct" },
   ];
-  return Math.max(0, ...scores);
+
+  // 第一关：额外比对假名核心片段
+  if (options?.stageId === "forest-1" && coreRead) {
+    candidates.push({
+      score: scoreReading(aligned, coreRead),
+      path: "reading_core",
+    });
+    candidates.push({
+      score: scoreReading(heard, coreRead),
+      path: "reading_core",
+    });
+  }
+
+  const best = candidates.reduce((a, b) => (b.score > a.score ? b : a), {
+    score: 0,
+    path: "reading_direct" as CastMatchPath,
+  });
+
+  return {
+    accuracy: Math.max(0, best.score),
+    matchPath: best.path,
+  };
+}
+
+export function matchPathLabel(path: CastMatchPath): string {
+  switch (path) {
+    case "incantation":
+    case "incantation_alias":
+      return "咒文汉字匹配";
+    case "reading_aligned":
+    case "reading_direct":
+      return "假名读音匹配";
+    case "reading_core":
+      return "核心假名匹配（第一关宽容）";
+    default:
+      return "匹配";
+  }
 }
 
 /** UI 用：准确度达到此值显示「咏唱成功」 */
@@ -255,17 +341,22 @@ export function damageFromAccuracy(
   accuracy: number,
   base: number,
   power = 1,
+  critThreshold = CAST_CRIT_THRESHOLD,
 ): { damage: number; crit: boolean; cast: boolean } {
   const safeBase = Number.isFinite(base) && base > 0 ? base : 0;
   const safePower = Number.isFinite(power) && power > 0 ? power : 1;
   const scale = powerScaleFromAccuracy(accuracy);
+  const safeCritThreshold = Math.max(
+    50,
+    Math.min(100, Number.isFinite(critThreshold) ? critThreshold : CAST_CRIT_THRESHOLD),
+  );
 
   if (scale <= 0 || safeBase <= 0) {
     return { damage: 0, crit: false, cast: false };
   }
 
   const acc = Math.max(0, Math.min(100, Number.isFinite(accuracy) ? accuracy : 0));
-  const crit = acc >= CAST_CRIT_THRESHOLD;
+  const crit = acc >= safeCritThreshold;
   const critMul = crit ? 1.5 : 1;
   const damage = Math.max(1, Math.round(safeBase * safePower * scale * critMul));
   return { damage, crit, cast: true };

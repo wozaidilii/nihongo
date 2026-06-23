@@ -9,7 +9,7 @@ import type { HeroClassId, PlayerState } from "~/types";
 const STORAGE_KEY = "nihongo-hero-save";
 
 /** 当前存档版本，结构变更时 +1 并在 migrate 处理 */
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 /** 生成一份全新的默认存档 */
 export function createDefaultPlayerState(): PlayerState {
@@ -20,6 +20,7 @@ export function createDefaultPlayerState(): PlayerState {
     exp: 0,
     clearedStageIds: [],
     learnedVocabIds: [],
+    skillTreeUnlocked: [],
   };
 }
 
@@ -61,6 +62,7 @@ export function sanitizePlayerState(raw: unknown): PlayerState {
     exp: toNonNegInt(data.exp, base.exp),
     clearedStageIds: toStringArray(data.clearedStageIds),
     learnedVocabIds: toStringArray(data.learnedVocabIds),
+    skillTreeUnlocked: toStringArray(data.skillTreeUnlocked),
   };
 }
 

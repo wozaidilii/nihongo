@@ -37,8 +37,11 @@ function parseClassSamples() {
   return out;
 }
 
-/** 从 generate_voices.py 解析 SAMPLES 字典 */
+/** generate_voices.py 从 classes.ts 动态加载 sample（单一数据源） */
 function parsePythonSamples() {
+  if (genPy.includes("load_samples_from_classes_ts")) {
+    return parseClassSamples();
+  }
   const block = genPy.match(/SAMPLES = \{([\s\S]*?)\n\}/);
   if (!block) return {};
   const out = {};

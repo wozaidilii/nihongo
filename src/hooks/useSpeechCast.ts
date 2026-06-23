@@ -7,12 +7,13 @@ import {
   type CastErrorKind,
   type Recognizer,
 } from "~/lib/speechRecognition";
-import { scoreSkillCast } from "~/lib/match";
+import { scoreSkillCastDetailed, matchPathLabel } from "~/lib/match";
 
-/** 咏唱比对目标：咒文原文 + 假名读音 */
+/** 咏唱比对目标：咒文原文 + 假名读音 + 可选关卡（第一关宽容评分） */
 export interface CastTarget {
   incantation: string;
   reading: string;
+  stageId?: string;
 }
 
 /** 施法阶段状态机 */
@@ -25,6 +26,8 @@ export interface CastResult {
   accuracy: number;
   /** 是否念出有效咒文(准确度 > 0) */
   success: boolean;
+  /** 评分匹配路径（UI 提示用） */
+  matchPath?: string;
 }
 
 export interface UseSpeechCastReturn {
@@ -98,12 +101,13 @@ export function useSpeechCast(): UseSpeechCastReturn {
   }, []);
 
   const finalizeScore = useCallback((heard: string): CastResult => {
-    const { incantation, reading } = targetRef.current;
-    const accuracy = scoreSkillCast(heard, incantation, reading);
+    const { incantation, reading, stageId } = targetRef.current;
+    const detail = scoreSkillCastDetailed(heard, incantation, reading, { stageId });
     const res: CastResult = {
       heard,
-      accuracy,
-      success: accuracy > 0,
+      accuracy: detail.accuracy,
+      success: detail.accuracy > 0,
+      matchPath: matchPathLabel(detail.matchPath),
     };
     setResult(res);
     setPhase("scored");
@@ -173,6 +177,7 @@ export function useSpeechCast(): UseSpeechCastReturn {
       targetRef.current = {
         incantation: target?.incantation ?? "",
         reading: target?.reading ?? "",
+        stageId: target?.stageId,
       };
       scoredRef.current = false;
       setInterim("");
@@ -197,16 +202,19 @@ export function useSpeechCast(): UseSpeechCastReturn {
       targetRef.current = {
         incantation: target?.incantation ?? "",
         reading: target?.reading ?? "",
+        stageId: target?.stageId,
       };
-      const accuracy = scoreSkillCast(
+      const detail = scoreSkillCastDetailed(
         text,
         targetRef.current.incantation,
         targetRef.current.reading,
+        { stageId: targetRef.current.stageId },
       );
       const res: CastResult = {
         heard: text,
-        accuracy,
-        success: accuracy > 0,
+        accuracy: detail.accuracy,
+        success: detail.accuracy > 0,
+        matchPath: matchPathLabel(detail.matchPath),
       };
       setResult(res);
       setPhase("scored");

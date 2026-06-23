@@ -7,7 +7,7 @@ export const STAGES: Stage[] = [
     title: "迷いの森",
     order: 1,
     intro: "迷雾森林的深处，一只史莱姆魔人挡住了去路。念出你的咒文，让它见识勇者之力！",
-    enemy: { name: "スライム魔人", sprite: "🟢", spriteKey: "slime", hp: 70, attack: 12 },
+    enemy: { name: "スライム魔人", sprite: "🟢", spriteKey: "slime", hp: 70, attack: 8 },
     vocab: [
       { id: "v-hi", kana: "ほのお", kanji: "炎", romaji: "honoo", zh: "火焰" },
       { id: "v-hikari", kana: "ひかり", kanji: "光", romaji: "hikari", zh: "光" },

@@ -26,6 +26,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
 OUT_DIR = os.path.normpath(os.path.join(ROOT, "public", "voices"))
 SKILLS_TS = os.path.join(ROOT, "src", "data", "skills.ts")
+CLASSES_TS = os.path.join(ROOT, "src", "data", "classes.ts")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # Voice Design 音色描述（仅用于 sample_*.wav）
@@ -36,12 +37,22 @@ PERSONA = {
     "bushi": "(A stern old samurai, deep resolute gravelly male voice, solemn bushido warrior, dramatic Japanese anime style)",
 }
 
-SAMPLES = {
-    "keigo": "我が剣に懸けて、必ずや勝利いたします。",
-    "chuuni": "闇よ、我が呼び声に応えよ……穿て、漆黒の槍！",
-    "tameguchi": "へへっ、こんなの楽勝だぜ！",
-    "bushi": "拙者の刃、いざ唸るでござる！",
-}
+def load_samples_from_classes_ts() -> dict[str, str]:
+    """从 classes.ts 的 SPEECH_STYLES.sample 读取语体试听台词，与游戏数据单一来源。"""
+    if not os.path.isfile(CLASSES_TS):
+        raise FileNotFoundError(f"找不到 {CLASSES_TS}")
+
+    content = open(CLASSES_TS, encoding="utf-8").read()
+    samples: dict[str, str] = {}
+    for style in ("keigo", "chuuni", "tameguchi", "bushi"):
+        m = re.search(rf'{style}:\s*\{{[\s\S]*?sample:\s*"([^"]+)"', content)
+        if not m:
+            raise ValueError(f"classes.ts 中未解析到 {style}.sample")
+        samples[style] = m.group(1)
+    return samples
+
+
+SAMPLES = load_samples_from_classes_ts()
 
 CLASS_PERSONA = {
     "knight": "keigo",

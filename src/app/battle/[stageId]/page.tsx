@@ -3,9 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getStage, getNextStage, isStageUnlocked } from "~/data/stages";
-import { getSkillsForStage } from "~/data/skills";
+import { getBattleSkills } from "~/data/skills";
+import { getAggregatedModifiers, getEffectiveMaxHp } from "~/data/skillTree";
 import { getHeroClass, getStyleForClass } from "~/data/classes";
-import { damageFromAccuracy, powerScaleFromAccuracy } from "~/lib/match";
+import {
+  CAST_CRIT_THRESHOLD,
+  damageFromAccuracy,
+  powerScaleFromAccuracy,
+} from "~/lib/match";
 import { speak } from "~/lib/tts";
 import { useGameReady } from "~/hooks/useGameReady";
 import { useGameStore } from "~/store/game";
@@ -36,11 +41,28 @@ export default function BattlePage() {
   const ready = useGameReady();
   const classId = useGameStore((s) => s.classId);
   const clearedStageIds = useGameStore((s) => s.clearedStageIds);
+  const skillTreeUnlocked = useGameStore((s) => s.skillTreeUnlocked);
   const completeStage = useGameStore((s) => s.completeStage);
+  const hasPendingSkillPick = useGameStore((s) => s.hasPendingSkillPick);
 
   const stage = getStage(stageId);
   const hero = getHeroClass(classId);
   const style = getStyleForClass(classId);
+
+  const skillMods = useMemo(
+    () => (hero ? getAggregatedModifiers(hero.id, skillTreeUnlocked) : {}),
+    [hero, skillTreeUnlocked],
+  );
+  const maxHeroHp = useMemo(
+    () => (hero ? getEffectiveMaxHp(hero.stats.maxHp, hero.id, skillTreeUnlocked) : 0),
+    [hero, skillTreeUnlocked],
+  );
+  const critThreshold = CAST_CRIT_THRESHOLD - (skillMods.critBonus ?? 0);
+
+  const skills = useMemo(
+    () => getBattleSkills(stageId, classId, skillTreeUnlocked),
+    [stageId, classId, skillTreeUnlocked],
+  );
 
   // ----- 战斗状态 -----
   const [phase, setPhase] = useState<Phase>("intro");
@@ -58,7 +80,6 @@ export default function BattlePage() {
   const [fxTrigger, setFxTrigger] = useState(0);
   const floatId = useRef(0);
 
-  // 路由/前置条件校验：无效关卡或未解锁则回地图；未选职业回选择页
   useEffect(() => {
     if (!ready) return;
     if (!classId) {
@@ -74,15 +95,13 @@ export default function BattlePage() {
     }
   }, [ready, classId, stage, clearedStageIds, router]);
 
-  // 进入关卡时初始化双方血量
   useEffect(() => {
     if (stage && hero) {
       setEnemyHp(stage.enemy.hp);
-      setHeroHp(hero.stats.maxHp);
+      setHeroHp(maxHeroHp);
     }
-  }, [stage, hero]);
+  }, [stage, hero, maxHeroHp]);
 
-  const skills = getSkillsForStage(stageId, classId);
   const currentSkill = skills.length > 0 ? skills[skillIndex % skills.length] : undefined;
   const vocabIds = useMemo(() => stage?.vocab.map((v) => v.id) ?? [], [stage]);
 
@@ -102,7 +121,38 @@ export default function BattlePage() {
     }, 900);
   };
 
-  // 处理一次施法结算
+  /** 怪物攻击勇者（每回合或咏唱失败时） */
+  const performEnemyAttack = (
+    multiplier: number,
+    reason: string,
+    onComplete: () => void,
+  ) => {
+    const reduction = skillMods.failDamageReduction ?? 0;
+    const raw = stage.enemy.attack * multiplier;
+    const dmg = Math.max(1, Math.round(raw * (1 - reduction)));
+
+    setEnemySprite("attack");
+    setHeroSprite("hurt");
+    setHeroAnim("anim-shake");
+    setFeedback(`${reason}${stage.enemy.name} 攻击，受到 ${dmg} 点伤害！`);
+
+    setHeroHp((prev) => {
+      const next = Math.max(0, prev - dmg);
+      setTimeout(() => {
+        setHeroAnim("");
+        setHeroSprite("idle");
+        setEnemySprite("idle");
+        if (next <= 0) {
+          setPhase("lose");
+        } else {
+          onComplete();
+        }
+        setBusy(false);
+      }, 650);
+      return next;
+    });
+  };
+
   const handleResolved = (result: CastResult) => {
     if (busy || !currentSkill) return;
     setBusy(true);
@@ -111,64 +161,55 @@ export default function BattlePage() {
       result.accuracy,
       currentSkill.baseDamage,
       hero.stats.power,
+      critThreshold,
     );
 
     if (cast && damage > 0) {
       setHeroSprite("attack");
       setEnemySprite("hurt");
       setFxTrigger((k) => k + 1);
-      const next = Math.max(0, enemyHp - damage);
+      const nextEnemyHp = Math.max(0, enemyHp - damage);
       setEnemyAnim("anim-shake anim-flash");
       pushFloat(damage, crit);
       const powerPct = Math.round(powerScaleFromAccuracy(result.accuracy) * 100);
       const powerNote =
-        result.accuracy < 92 && result.accuracy > 0 ? `（威力 ${powerPct}%）` : "";
+        result.accuracy < critThreshold && result.accuracy > 0
+          ? `（威力 ${powerPct}%）`
+          : "";
       setFeedback(
         crit
           ? `暴击！「${currentSkill.nameZh}」造成 ${damage} 点伤害！${powerNote}`
           : `「${currentSkill.nameZh}」造成 ${damage} 点伤害！${powerNote}`,
       );
-      setEnemyHp(next);
+      setEnemyHp(nextEnemyHp);
 
       setTimeout(() => {
         setEnemyAnim("");
         setHeroSprite("idle");
-        if (next <= 0) {
+        if (nextEnemyHp <= 0) {
           setEnemySprite("death");
           completeStage(stage.id, vocabIds);
           setPhase("win");
+          setBusy(false);
         } else {
-          setSkillIndex((i) => (i + 1) % skills.length);
-          setAttemptKey((k) => k + 1);
+          // 成功施法后怪物常规反击
+          performEnemyAttack(1, "", () => {
+            setSkillIndex((i) => (i + 1) % skills.length);
+            setAttemptKey((k) => k + 1);
+          });
         }
-        setBusy(false);
       }, 650);
     } else {
-      setEnemySprite("attack");
-      setHeroSprite("hurt");
-      const dmg = stage.enemy.attack;
-      const next = Math.max(0, heroHp - dmg);
-      setHeroAnim("anim-shake");
-      setFeedback(`咏唱失败！${stage.enemy.name} 反击，受到 ${dmg} 点伤害！`);
-      setHeroHp(next);
-
-      setTimeout(() => {
-        setHeroAnim("");
-        setHeroSprite("idle");
-        setEnemySprite("idle");
-        if (next <= 0) {
-          setPhase("lose");
-        } else {
-          setAttemptKey((k) => k + 1);
-        }
-        setBusy(false);
-      }, 650);
+      // 咏唱失败：怪物强化反击
+      performEnemyAttack(1.2, "咏唱失败！ ", () => {
+        setAttemptKey((k) => k + 1);
+      });
     }
   };
 
   const restartBattle = () => {
     setEnemyHp(stage.enemy.hp);
-    setHeroHp(hero.stats.maxHp);
+    setHeroHp(maxHeroHp);
     setSkillIndex(0);
     setAttemptKey((k) => k + 1);
     setFeedback("");
@@ -185,7 +226,6 @@ export default function BattlePage() {
     }
   };
 
-  // ===== 渲染各阶段 =====
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-5 p-4 sm:p-6">
       <header className="flex items-center justify-between">
@@ -240,7 +280,6 @@ export default function BattlePage() {
 
       {phase === "battle" && currentSkill && (
         <div className="flex flex-col gap-4">
-          {/* 战场 */}
           <PixelPanel
             tone="dialog"
             className="relative flex items-center justify-between"
@@ -258,7 +297,7 @@ export default function BattlePage() {
                 />
               </div>
               <div className="w-28">
-                <HpBar current={heroHp} max={hero.stats.maxHp} tone="hero" />
+                <HpBar current={heroHp} max={maxHeroHp} tone="hero" />
               </div>
             </div>
 
@@ -275,17 +314,16 @@ export default function BattlePage() {
                   bob={enemySprite === "idle" && !busy}
                   label={stage.enemy.name}
                 />
-                {currentSkill && (
-                  <SkillFxOverlay
-                    fxKey={currentSkill.fxKey}
-                    triggerKey={fxTrigger}
-                  />
-                )}
+                <SkillFxOverlay fxKey={currentSkill.fxKey} triggerKey={fxTrigger} />
               </div>
               <div className="w-28">
-                <HpBar current={enemyHp} max={stage.enemy.hp} tone="enemy" label={stage.enemy.name} />
+                <HpBar
+                  current={enemyHp}
+                  max={stage.enemy.hp}
+                  tone="enemy"
+                  label={stage.enemy.name}
+                />
               </div>
-              {/* 浮动伤害数字 */}
               <div className="pointer-events-none absolute -top-2 right-0">
                 {floats.map((f) => (
                   <span
@@ -322,7 +360,9 @@ export default function BattlePage() {
           <DialogueBox
             speaker="胜利！"
             sprite="🏆"
-            text={`讨伐成功！${stage.enemy.name} 被你的中二咒文击败了！本关词汇已收入图鉴。`}
+            text={`讨伐成功！${stage.enemy.name} 被你的中二咒文击败了！本关词汇已收入图鉴。${
+              hasPendingSkillPick() ? " 你升级了，回冒险地图可选择技能强化！" : ""
+            }`}
           />
           <div className="flex flex-col gap-3">
             {getNextStage(stage.id) ? (

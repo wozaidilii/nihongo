@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { STAGES_ORDERED, isStageUnlocked } from "~/data/stages";
 import { getHeroClass, getStyleForClass } from "~/data/classes";
+import { getChosenBranch, getAvailableSkillPicks, SKILL_TREES } from "~/data/skillTree";
 import { MapNode } from "~/components/game/MapNode";
+import { SkillTreeModal } from "~/components/game/SkillTreeModal";
 import { PixelButton } from "~/components/pixel/PixelButton";
 import { PixelPanel } from "~/components/pixel/PixelPanel";
 import { CharacterSprite } from "~/components/pixel/CharacterSprite";
@@ -18,16 +20,27 @@ export default function AdventurePage() {
   const level = useGameStore((s) => s.level);
   const exp = useGameStore((s) => s.exp);
   const clearedStageIds = useGameStore((s) => s.clearedStageIds);
+  const skillTreeUnlocked = useGameStore((s) => s.skillTreeUnlocked);
+  const unlockSkillNode = useGameStore((s) => s.unlockSkillNode);
+  const hasPendingSkillPick = useGameStore((s) => s.hasPendingSkillPick);
+
+  const [showSkillTree, setShowSkillTree] = useState(false);
 
   const hero = getHeroClass(classId);
   const style = getStyleForClass(classId);
+  const branch = classId ? getChosenBranch(classId, skillTreeUnlocked) : null;
 
-  // 未选职业则回到选择页(等水合完成再判断)
   useEffect(() => {
     if (ready && !classId) router.replace("/select");
   }, [ready, classId, router]);
 
-  if (!ready || !hero) {
+  useEffect(() => {
+    if (ready && hasPendingSkillPick()) {
+      setShowSkillTree(true);
+    }
+  }, [ready, level, skillTreeUnlocked, hasPendingSkillPick]);
+
+  if (!ready || !hero || !classId) {
     return (
       <main className="flex min-h-screen items-center justify-center">
         <p className="font-pixel text-xs text-rpg-12">加载中…</p>
@@ -35,8 +48,30 @@ export default function AdventurePage() {
     );
   }
 
+  const unlockedNodes = (SKILL_TREES[classId] ?? []).filter((n) =>
+    skillTreeUnlocked.includes(n.id),
+  );
+
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 p-6">
+      {showSkillTree && (
+        <SkillTreeModal
+          classId={classId}
+          level={level}
+          unlockedIds={skillTreeUnlocked}
+          onPick={(nodeId) => {
+            unlockSkillNode(nodeId);
+            const nextUnlocked = [...skillTreeUnlocked, nodeId];
+            if (
+              getAvailableSkillPicks(classId, level, nextUnlocked).length === 0
+            ) {
+              setShowSkillTree(false);
+            }
+          }}
+          onClose={() => setShowSkillTree(false)}
+        />
+      )}
+
       <PixelPanel tone="dialog" className="flex items-center gap-4">
         <CharacterSprite
           kind="hero"
@@ -54,8 +89,31 @@ export default function AdventurePage() {
             语体：{style.nameZh}（{style.nameJa}）
           </p>
           <p className="font-pixel text-[10px] text-rpg-14">EXP {exp}</p>
+          {branch && (
+            <p className="font-jp text-[10px] text-rpg-11">
+              技能路线：分支 {branch.toUpperCase()}
+            </p>
+          )}
         </div>
+        {hasPendingSkillPick() && (
+          <PixelButton variant="gold" onClick={() => setShowSkillTree(true)}>
+            技能+
+          </PixelButton>
+        )}
       </PixelPanel>
+
+      {unlockedNodes.length > 0 && (
+        <PixelPanel>
+          <p className="font-pixel text-[10px] text-rpg-5">已解锁技能</p>
+          <ul className="mt-2 space-y-1">
+            {unlockedNodes.map((n) => (
+              <li key={n.id} className="font-jp text-xs text-rpg-12">
+                {n.nameZh} — {n.description}
+              </li>
+            ))}
+          </ul>
+        </PixelPanel>
+      )}
 
       <header className="text-center">
         <h1 className="font-pixel text-lg text-rpg-5">冒险地图</h1>

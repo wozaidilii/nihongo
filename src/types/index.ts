@@ -62,6 +62,28 @@ export interface Vocab {
   ttsText?: string;
 }
 
+/** 技能树节点加成 */
+export interface SkillTreeModifiers {
+  damageMul?: number;
+  critBonus?: number;
+  maxHpBonus?: number;
+  failDamageReduction?: number;
+  skillDamageMul?: Record<string, number>;
+}
+
+/** 技能树节点 */
+export interface SkillTreeNode {
+  id: string;
+  classId: HeroClassId;
+  branch: "a" | "b";
+  tier: 1 | 2;
+  unlockLevel: number;
+  nameZh: string;
+  description: string;
+  requires?: string;
+  modifiers: SkillTreeModifiers;
+}
+
 /** 技能特效素材键(与 public/sprites/fx 一致) */
 export type SkillFxKey =
   | "fire"
@@ -113,7 +135,7 @@ export interface Enemy {
   /** LPC 敌人精灵 id(与 manifest enemies 键一致) */
   spriteKey: string;
   hp: number;
-  /** 怪兽攻击力(玩家施法失败时受到的伤害) */
+  /** 怪兽攻击力（每回合对勇者造成的伤害） */
   attack: number;
 }
 
@@ -142,4 +164,6 @@ export interface PlayerState {
   clearedStageIds: string[];
   /** 已学会的词汇 id */
   learnedVocabIds: string[];
+  /** 已解锁的技能树节点 id */
+  skillTreeUnlocked: string[];
 }

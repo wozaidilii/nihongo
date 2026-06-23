@@ -45,7 +45,7 @@ export function CastPanel({
   const incantation = incantationFor(skill);
   const reading = readingFor(skill);
   const romaji = romajiFor(skill);
-  const castTarget = { incantation, reading };
+  const castTarget = { incantation, reading, stageId: skill.stageId };
   const [fallbackInput, setFallbackInput] = useState("");
 
   useEffect(() => {
@@ -113,6 +113,11 @@ export function CastPanel({
           <p className="mt-2 font-jp text-[10px] leading-relaxed text-rpg-14">
             可念汉字咒文或假名；系统把你念的内容与上方假名比对，相似度越高威力越大（与技能名无关）。
           </p>
+          {skill.stageId === "forest-1" && (
+            <p className="mt-1 font-jp text-[10px] text-rpg-11">
+              第一关提示：念对核心假名即可施法，不必一字不差。
+            </p>
+          )}
         </div>
 
         <p className="mt-2 font-jp text-[11px] text-rpg-14">含义：{skill.zh}</p>
@@ -123,7 +128,7 @@ export function CastPanel({
           <div className="flex flex-col gap-2">
             <p className="font-jp text-xs text-rpg-4">
               {cast.errorMessage ??
-                "语音不可用，请输入咒文假名（与「判定对照」一致）："}
+                "语音不可用，请输入咒文（汉字或假名均可）："}
             </p>
             <input
               value={fallbackInput}
@@ -154,9 +159,13 @@ export function CastPanel({
             )}
 
             {listening && (
-              <p className="font-jp text-sm text-rpg-12">
-                {cast.interim || `……请念「${incantation}」……`}
-              </p>
+              <div className="text-center">
+                <p className="font-pixel text-[10px] text-rpg-5">请念假名（推荐）</p>
+                <p className="mt-1 font-jp text-base text-rpg-5">{reading}</p>
+                <p className="mt-2 font-jp text-xs text-rpg-12">
+                  {cast.interim || `……或念汉字咒文「${incantation}」……`}
+                </p>
+              </div>
             )}
 
             {cast.errorMessage && !scored && (
@@ -170,6 +179,7 @@ export function CastPanel({
                 </p>
                 <p className="mt-1 font-jp text-xs text-rpg-14">
                   与假名「{reading}」相似度
+                  {cast.result.matchPath ? ` · ${cast.result.matchPath}` : ""}
                 </p>
                 <p className="font-pixel text-2xl text-rpg-5">
                   {cast.result.accuracy}%
